@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Dynasty Draft Command Center</title>
+<style>
+:root{
+  --bg:#0b1020;--panel:#121a2e;--panel2:#17223c;--text:#f8fafc;--muted:#a9b4c8;
+  --border:#2b3a5f;--accent:#7da2ff;--accent2:#9fb7ff;--good:#53d18c;--warn:#ffcc66;--bad:#ff8080;
+}
+*{box-sizing:border-box}html{background:var(--bg)}body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+main{max-width:980px;margin:0 auto;padding:14px 12px 28px}
+h1{font-size:22px;margin:0}h2{font-size:15px;margin:0 0 10px}p{margin:4px 0}.small{font-size:12px}.muted{color:var(--muted)}
+.grid{display:grid;gap:10px}.g4{grid-template-columns:repeat(4,minmax(0,1fr))}.g3{grid-template-columns:repeat(3,minmax(0,1fr))}.g2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.card,.metric,.pickcard{border:1px solid var(--border);border-radius:16px;background:var(--panel);padding:13px}
+.metric{background:var(--panel2)}.k{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}.v{font-size:22px;font-weight:750;margin-top:4px}.sub{font-size:11px;color:var(--muted);margin-top:3px}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.grow{flex:1}
+.pill{display:inline-flex;align-items:center;border-radius:999px;padding:3px 8px;background:#1e2e52;color:#dbe5ff;font-size:11px;line-height:1.3}
+.pill.good{background:#123526;color:#baf4d1}.pill.warn{background:#3a2d10;color:#ffe1a6}.pill.bad{background:#421e26;color:#ffc0c7}
+.statusdot{width:9px;height:9px;border-radius:50%;background:var(--bad);display:inline-block}.statusdot.on{background:var(--good)}
+.section{margin-top:12px}
+input,select,button{font:inherit}input,select{width:100%;background:#0f1730;color:var(--text);border:1px solid var(--border);border-radius:10px;padding:9px}
+button{background:#15213f;color:var(--text);border:1px solid var(--border);border-radius:10px;padding:9px 11px;cursor:pointer}
+button.primary{background:var(--accent);border-color:var(--accent);color:#071024;font-weight:700}
+.hero{background:#13254b;border:1px solid #2e4f90;border-radius:18px;padding:14px}
+.hero .headline{font-weight:800;font-size:19px}.hero .reason{font-size:12px;color:#d5ddf0;margin-top:5px}
+.pickgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:10px}
+.pickcard.recommended{border-color:var(--accent);background:#14274f}.ranknum{font-size:11px;color:var(--muted)}.pickname{font-size:17px;font-weight:750;margin:3px 0}.why{font-size:12px;color:#cdd6e8;margin-top:6px;min-height:48px}
+.statline{display:flex;justify-content:space-between;gap:8px;font-size:11px;margin-top:6px;color:var(--muted)}
+.bar{height:8px;background:#0d1529;border-radius:999px;overflow:hidden;margin-top:6px}.fill{height:100%;background:var(--accent)}
+.alert{padding:10px;border-radius:12px;background:#10192d;border:1px solid var(--border);margin-bottom:7px}.alert strong{font-size:13px}
+.player{display:grid;grid-template-columns:1fr auto;gap:8px;border:1px solid var(--border);border-radius:12px;padding:10px;margin-bottom:7px;background:#10192d}
+.name{font-weight:650}.meta{font-size:11px;color:var(--muted);margin-top:3px}
+table{width:100%;border-collapse:collapse;font-size:12px}th,td{text-align:left;padding:6px;border-bottom:1px solid var(--border)}th{color:var(--muted);font-weight:600}
+summary{cursor:pointer;font-weight:650}
+#log{max-height:150px;overflow:auto;white-space:pre-wrap;background:#081126;padding:9px;border-radius:10px;font-size:11px}
+.tradebox{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+@media(max-width:760px){.g4{grid-template-columns:1fr 1fr}.g3,.g2{grid-template-columns:1fr}.pickgrid{grid-template-columns:1fr}.why{min-height:0}.tradebox{grid-template-columns:1fr}}
+@media(max-width:420px){main{padding:10px}.v{font-size:19px}.hero .headline{font-size:17px}.pickname{font-size:16px}}
+</style>
+</head>
+<body>
+<main>
+  <div class="row" style="justify-content:space-between;margin-bottom:10px">
+    <div>
+      <h1>Dynasty Draft Command Center</h1>
+      <div class="small muted">12T SF · ½ PPR · 3RR · 21 rounds · balanced dynasty</div>
+    </div>
+    <div class="row"><span id="syncDot" class="statusdot"></span><span id="syncText" class="small muted">Connecting…</span></div>
+  </div>
+
+  <section class="grid g4">
+    <div class="metric"><div class="k">On Clock</div><div class="v" id="onClock">—</div><div class="sub" id="onClockTeam">—</div></div>
+    <div class="metric"><div class="k">My Next Pick</div><div class="v" id="myNext">—</div><div class="sub" id="myNextSub">Auto-detecting</div></div>
+    <div class="metric"><div class="k">Picks Synced</div><div class="v" id="pickCount">0</div><div class="sub">of 252</div></div>
+    <div class="metric"><div class="k">Draft Phase</div><div class="v" id="phase">—</div><div class="sub">Roster EV focus</div></div>
+  </section>
+
+  <section class="hero section">
+    <div class="row" style="justify-content:space-between">
+      <div><div class="k">Live Recommendation</div><div class="headline" id="headline">Waiting for Sleeper data…</div></div>
+      <span id="turnBadge" class="pill">SYNCING</span>
+    </div>
+    <div class="reason" id="headlineReason">The app will automatically track every team and recommend exactly three players when it is your turn.</div>
+    <div class="pickgrid" id="top3"></div>
+  </section>
+
+  <section class="grid g2 section">
+    <div class="card">
+      <h2>Draft Trends You Should Care About</h2>
+      <div id="trendAlerts"></div>
+    </div>
+    <div class="card">
+      <h2>Trade This Pick?</h2>
+      <div id="tradeAdvice" class="small muted">Waiting for your team and current pick.</div>
+      <div class="tradebox" style="margin-top:9px">
+        <label><div class="k">Trade-down pick received</div><input id="tradeDownPick" type="number" min="1" max="252" placeholder="e.g. 42"></label>
+        <label><div class="k">Future 1sts received</div><input id="futureFirsts" type="number" min="0" max="4" value="0"></label>
+      </div>
+      <div id="tradeEval" class="small" style="margin-top:9px"></div>
+    </div>
+  </section>
+
+  <section class="grid g3 section">
+    <div class="card"><h2>My Roster</h2><div id="myRoster" class="small muted">Auto-detecting your roster.</div></div>
+    <div class="card"><h2>Opponent Demand Before Me</h2><div id="demand" class="small muted">Calculating.</div></div>
+    <div class="card"><h2>Room Mispricing</h2><div id="mispricing" class="small muted">Learning from the room.</div></div>
+  </section>
+
+  <section class="card section">
+    <div class="row" style="justify-content:space-between">
+      <div><h2 style="margin:0">Live BeerSheet</h2><div class="small muted">Fundamental value stays separate from room behavior; the room changes availability, not intrinsic worth.</div></div>
+      <div class="row">
+        <select id="posFilter" style="width:auto"><option value="ALL">All</option><option>QB</option><option>RB</option><option>WR</option><option>TE</option></select>
+        <input id="search" placeholder="Search" style="width:150px">
+      </div>
+    </div>
+    <div id="tiers" style="margin-top:10px"></div>
+  </section>
+
+  <details class="card section">
+    <summary>Opponent rosters</summary>
+    <div style="margin-top:10px">
+      <select id="teamInspect"></select>
+      <div id="teamRoster" style="margin-top:9px"></div>
+    </div>
+  </details>
+
+  <details class="card section">
+    <summary>Advanced draft-room diagnostics</summary>
+    <div class="grid g2" style="margin-top:10px">
+      <div><h2>Momentum</h2><div id="momentum"></div></div>
+      <div><h2>Room Learning</h2><div id="roomLearning"></div></div>
+    </div>
+  </details>
+
+  <details class="card section">
+    <summary>Connection / settings</summary>
+    <div class="grid g2" style="margin-top:10px">
+      <label><div class="k">Sleeper draft ID</div><input id="draftId" value="1393972546394656768"></label>
+      <label><div class="k">My team</div><select id="myTeam"><option value="">Auto-detect / choose once</option></select></label>
+    </div>
+    <div class="row" style="margin-top:9px">
+      <button class="primary" id="syncNow">Sync now</button>
+      <label class="row small"><input id="autoSync" type="checkbox" checked style="width:auto"> Auto-sync every 4 sec</label>
+    </div>
+    <div id="log" style="margin-top:9px">Ready.</div>
+  </details>
+</main>
+
+<script>
+const API='https://api.sleeper.app/v1', POS=['QB','RB','WR','TE'];
+const RAW=[
+['Josh Allen','QB','BUF',1,10256,30],['Bijan Robinson','RB','ATL',2,10018,24],['Drake Maye','QB','NE',3,9785,23],['Ja\\'Marr Chase','WR','CIN',4,9558,26],['Jahmyr Gibbs','RB','DET',5,9336,24],['Jaxon Smith-Njigba','WR','SEA',6,9119,24],['Puka Nacua','WR','LAR',7,8907,25],['Caleb Williams','QB','CHI',8,8700,24],['Jayden Daniels','QB','WAS',9,8498,25],['Ashton Jeanty','RB','LV',10,8301,22],['Brock Bowers','TE','LV',11,8108,23],['Justin Jefferson','WR','MIN',12,7920,27],['CeeDee Lamb','WR','DAL',13,7736,27],['Amon-Ra St. Brown','WR','DET',14,7556,26],['De\\'Von Achane','RB','MIA',15,7381,24],['Joe Burrow','QB','CIN',16,7209,29],['Malik Nabers','WR','NYG',17,7042,23],['Jeremiyah Love','RB','ARI',18,6878,21],['Justin Herbert','QB','LAC',19,6719,28],['Trey McBride','TE','ARI',20,6563,26],['Lamar Jackson','QB','BAL',21,6410,29],['Patrick Mahomes','QB','KC',22,6261,30],['Omarion Hampton','RB','LAC',23,6116,23],['Jaxson Dart','QB','NYG',24,5974,23],['Drake London','WR','ATL',25,5835,25],['Jalen Hurts','QB','PHI',26,6040,28],['Tetairoa McMillan','WR','CAR',27,5650,23],['Trevor Lawrence','QB','JAX',28,4786,26],['Emeka Egbuka','WR','TB',29,5206,23],['Jonathan Taylor','RB','IND',30,4566,27],['Garrett Wilson','WR','NYJ',31,5473,26],['James Cook','RB','BUF',32,5643,26],['Brock Purdy','QB','SF',33,4835,26],['Carnell Tate','WR','TEN',34,4582,21],['George Pickens','WR','DAL',35,4475,25],['Bo Nix','QB','DEN',36,4400,26],['Colston Loveland','TE','CHI',37,4225,22],['Breece Hall','RB','NYJ',38,3784,25],['Ladd McConkey','WR','LAC',39,4116,24],['Jordan Love','QB','GB',40,3651,27],['Quinshon Judkins','RB','CLE',41,4006,22],['Nico Collins','WR','HOU',42,3835,27],['Kenneth Walker III','RB','KC',43,4204,25],['Chris Olave','WR','NO',44,3361,26],['TreVeyon Henderson','RB','NE',45,4084,23],['Tyler Warren','TE','IND',46,3953,24],['DeVonta Smith','WR','PHI',47,3500,27],['Luther Burden III','WR','CHI',48,3300,22],['Jordyn Tyson','WR','NO',49,2922,21],['Christian McCaffrey','RB','SF',50,2757,30],['Marvin Harrison Jr.','WR','ARI',51,2787,24],['Brian Thomas Jr.','WR','JAX',52,2878,23],['Dak Prescott','QB','DAL',53,3354,33],['Makai Lemon','WR','PHI',54,2746,22],['Rashee Rice','WR','KC',55,2480,26],['Zay Flowers','WR','BAL',56,2928,25],['A.J. Brown','WR','NE',57,2724,29],['Baker Mayfield','QB','TB',58,2365,31],['Jameson Williams','WR','DET',59,2400,25],['Jared Goff','QB','DET',60,2359,31],['Saquon Barkley','RB','PHI',61,2226,29],['Chase Brown','RB','CIN',62,2484,26],['Tee Higgins','WR','CIN',63,2288,27],['Cam Skattebo','RB','NYG',64,2479,24],['Jaylen Waddle','WR','DEN',65,2537,27],['Javonte Williams','RB','DAL',66,2018,26],['Cam Ward','QB','TEN',67,1868,24],['Kyren Williams','RB','LAR',68,1845,25],['Bucky Irving','RB','TB',69,2019,24],['Jadarian Price','RB','SEA',70,1876,22],['Kyle Pitts','TE','ATL',71,2059,25],['Tucker Kraft','TE','GB',72,1661,25],['Harold Fannin Jr.','TE','CLE',73,1892,22],['Josh Jacobs','RB','GB',74,1865,28],['Travis Etienne','RB','NO',75,1596,27],['KC Concepcion','WR','CLE',76,1493,21],['Sam Darnold','QB','SEA',77,1842,29],['Sam LaPorta','TE','DET',78,1361,25],['C.J. Stroud','QB','HOU',79,1567,24],['Christian Watson','WR','GB',80,1386,27],['Jordan Addison','WR','MIN',81,1557,24],['Bhayshul Tuten','RB','JAX',82,1440,23],['Omar Cooper','WR','NYJ',83,1182,22],['Daniel Jones','QB','IND',84,1478,29],['Alec Pierce','WR','IND',85,1249,26],['Tyler Shough','QB','NO',86,1112,27],['D\\'Andre Swift','RB','CHI',87,1250,27],['Malik Willis','QB','MIA',88,1164,27],['Michael Wilson','WR','ARI',89,1025,26],['Denzel Boston','WR','CLE',90,1078,22],['Kenyon Sadiq','TE','NYJ',91,1029,21],['Ty Simpson','QB','LAR',92,1178,23],['Derrick Henry','RB','BAL',93,911,32],['Bryce Young','QB','CAR',94,832,25],['Jayden Reed','WR','GB',95,850,26],['Wan\\'Dale Robinson','WR','TEN',96,794,25],['Dalton Kincaid','TE','BUF',97,1005,26],['Jayden Higgins','WR','HOU',98,836,23],['Oronde Gadsden II','TE','LAC',99,833,23],['Matthew Stafford','QB','LAR',100,756,38],['Parker Washington','WR','JAX',101,754,24],['RJ Harvey','RB','DEN',102,674,25],['Eli Stowers','TE','PHI',103,743,22],['Davante Adams','WR','LAR',104,848,33],['Michael Pittman Jr.','WR','PIT',105,628,28],['Ricky Pearsall','WR','SF',106,669,25],['Matthew Golden','WR','GB',107,743,23],['Jonathon Brooks','RB','CAR',108,662,23],['Josh Downs','WR','IND',109,584,25],['Quentin Johnston','WR','LAC',110,638,24],['Romeo Doubs','WR','NE',111,690,26],['Jake Ferguson','TE','DAL',112,597,27],['Jonah Coleman','RB','DEN',113,566,22],['Chris Godwin','WR','TB',114,655,30],['De\\'Zhaun Stribling','WR','SF',115,583,23],['Germie Bernard','WR','PIT',116,485,22],['Xavier Worthy','WR','KC',117,557,23],['Antonio Williams','WR','WAS',118,488,23],['Isaiah Likely','TE','NYG',119,562,26],['Rico Dowdle','RB','PIT',120,504,28],['Courtland Sutton','WR','DEN',121,545,30],['Chris Bell','WR','MIA',122,479,22],['J.K. Dobbins','RB','DEN',123,387,27],['Jaylen Warren','RB','PIT',124,405,27],['Mike Evans','WR','SF',125,366,33],['George Kittle','TE','SF',126,404,32],['Ted Hurst','WR','TB',127,414,22],['Khalil Shakir','WR','BUF',128,432,26],['Travis Hunter','WR','JAX',129,352,23],['Mark Andrews','TE','BAL',130,435,30],['Zach Charbonnet','RB','SEA',131,318,25],['Blake Corum','RB','LAR',132,355,25],['Malachi Fields','WR','NYG',133,346,23],['Rhamondre Stevenson','RB','NE',134,328,28],['Chuba Hubbard','RB','CAR',135,350,27],['Michael Penix Jr.','QB','ATL',136,329,26],['Tua Tagovailoa','QB','ATL',137,276,28],['Rashid Shaheed','WR','SEA',138,305,27],['J.J. McCarthy','QB','MIN',139,342,23],['Tyjae Spears','RB','TEN',140,266,25],['Jalen Coker','WR','CAR',141,290,24],['Nicholas Singleton','RB','TEN',142,313,22],['Tyler Allgeier','RB','ARI',143,324,26],['Woody Marks','RB','HOU',144,280,25],['Tony Pollard','RB','TEN',145,293,29],['Shedeur Sanders','QB','CLE',146,267,24],['Jauan Jennings','WR','MIN',147,268,29],['Jerry Jeudy','WR','CLE',148,262,27],['Chris Brazzell','WR','CAR',149,246,23],['Tyrone Tracy Jr.','RB','NYG',150,208,26],['Dallas Goedert','TE','PHI',151,224,31],['Kenneth Gainwell','RB','TB',152,250,27],['Jacory Croskey-Merritt','RB','WAS',153,234,25],['Jordan Mason','RB','MIN',154,223,27],['Rachaad White','RB','WAS',155,233,27],['T.J. Hockenson','TE','MIN',156,193,29],['Jack Bech','WR','LV',157,219,23],['Deebo Samuel','WR','SF',158,171,30],['Stefon Diggs','WR','WAS',159,188,32],['Brenton Strange','TE','JAX',160,181,25],['Chigoziem Okonkwo','TE','TEN',161,155,26],['Emmett Johnson','RB','KC',162,184,23],['Jacoby Brissett','QB','ARI',163,148,33],['Kaleb Johnson','RB','PIT',164,186,23],['Mike Washington','RB','LV',165,183,22],['Elic Ayomanor','WR','TEN',166,163,23],['Chris Rodriguez Jr.','RB','JAX',167,142,25],['Elijah Sarratt','WR','BAL',168,134,22],['Skyler Bell','WR','BUF',169,153,22],['Dylan Sampson','RB','CLE',170,142,22],['Kaytron Allen','RB','WAS',171,141,22],['Ja\\'Kobi Lane','WR','BAL',172,122,22],['Isaac TeSlaa','WR','DET',173,127,24],['Terrance Ferguson','TE','LAR',174,111,23],['Demond Claiborne','RB','MIN',175,136,23],['Carson Beck','QB','ARI',176,128,23],['Mason Taylor','TE','NYJ',177,103,22],['Zachariah Branch','WR','ATL',178,129,22],['Kayshon Boutte','WR','NE',179,120,24],['Travis Kelce','TE','KC',180,116,36],['Braelon Allen','RB','NYJ',181,94,22],['Tre Harris','WR','LAC',182,94,24],['AJ Barner','TE','SEA',183,90,24],['Troy Franklin','WR','DEN',184,100,23],['Isiah Pacheco','RB','DET',185,83,27],['Geno Smith','QB','NYJ',186,84,35],['Keon Coleman','WR','BUF',187,79,23],['Aaron Jones','RB','MIN',188,76,31],['Eli Raridon','TE','NE',189,75,23],['Tory Horton','WR','SEA',190,84,23],['Max Klare','TE','LAR',191,71,22],['Kaelon Black','RB','SF',192,86,22],['Oscar Delp','TE','NO',193,70,23],['Gunnar Helm','TE','TEN',194,74,24],['Mac Jones','QB','SF',195,69,27],['Deshaun Watson','QB','CLE',196,59,30],['Juwan Johnson','TE','NO',197,55,29],['Hunter Henry','TE','NE',198,64,31],['Jaylen Wright','RB','MIA',199,53,23],['Pat Bryant','WR','DEN',200,61,23],['Alvin Kamara','RB','NO',201,54,31],['Tre Tucker','WR','LV',202,49,25],['Kyle Williams','WR','NE',203,51,23],['Chimere Dike','WR','TEN',204,48,24],['Drew Allar','QB','PIT',205,57,22],['Kirk Cousins','QB','LV',206,47,38],['Kimani Vidal','RB','LAC',207,54,24],['Tank Bigsby','RB','PHI',208,48,24],['Caleb Douglas','WR','MIA',209,41,23],['Aaron Rodgers','QB','PIT',210,49,42],['Greg Dulcich','TE','MIA',211,42,26],['Xavier Legette','WR','CAR',212,41,25],['Tank Dell','WR','HOU',213,44,26],['Justin Joly','TE','DEN',214,38,23],['Brandon Aiyuk','WR','SF',215,43,28],['Adam Randall','RB','BAL',216,37,22],['Malik Washington','WR','MIA',217,37,25],['Bryce Lance','WR','NO',218,34,22],['Kevin Coleman','WR','MIA',219,36,22],['Trey Benson','RB','ARI',220,32,24],['Dontayvion Wicks','WR','PHI',221,32,25],['Brenen Thompson','WR','LAC',222,33,23],['Brashard Smith','RB','KC',223,36,23],['Ollie Gordon II','RB','MIA',224,35,22],['Tyreek Hill','WR','MIA',225,31,32],['Dalton Schultz','TE','HOU',226,30,30],['Jaydon Blue','RB','DAL',227,28,22],['Christian Kirk','WR','SF',228,26,29],['Justin Fields','QB','KC',229,25,27]
+].map((x,i)=>({id:i,name:x[0],pos:x[1],team:x[2],rank:x[3],market:x[4],age:x[5]}));
+
+let S={draft:null,picks:[],users:[],rosters:[],teams:[],lastSync:null};
+const $=id=>document.getElementById(id), clamp=(x,a,b)=>Math.max(a,Math.min(b,x)), avg=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:0, count=(a,p)=>a.filter(x=>x.pos===p).length;
+const norm=s=>String(s||'').toLowerCase().replace(/[^a-z0-9]/g,''), esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
+function log(m){$('log').textContent=`${new Date().toLocaleTimeString()} ${m}\n`+$('log').textContent.slice(0,3500)}
+function fullName(p){let m=p.metadata||{};return [m.first_name,m.last_name].filter(Boolean).join(' ')||m.player_id||p.player_id||'Unknown'}
+function posOf(p){return p.metadata?.position||'UNK'} function teamOf(p){return p.metadata?.team||''}
+function knownByName(n){let x=norm(n);return RAW.find(p=>norm(p.name)===x)}
+function pickedIds(){let names=new Set(S.picks.map(p=>norm(fullName(p))));return new Set(RAW.filter(p=>names.has(norm(p.name))).map(p=>p.id))}
+function avail(){let ids=pickedIds();return RAW.filter(p=>!ids.has(p.id))}
+function rosterById(rid){return S.picks.filter(p=>String(p.roster_id)===String(rid)).map(p=>knownByName(fullName(p))||{name:fullName(p),pos:posOf(p),team:teamOf(p),rank:999,market:0,age:99,unknown:true})}
+function pickLabel(n){return `${Math.ceil(n/12)}.${String(((n-1)%12)+1).padStart(2,'0')}`}
+function slotAt(n){let r=Math.ceil(n/12),w=(n-1)%12+1;if(r===1)return w;if(r===2||r===3)return 13-w;return r%2===0?w:13-w}
+function ridForSlot(slot){return String(S.draft?.slot_to_roster_id?.[String(slot)]??'')}
+function myRid(){return $('myTeam').value||''}
+function mySlot(){let rid=myRid();if(!rid)return null;for(const [s,r] of Object.entries(S.draft?.slot_to_roster_id||{}))if(String(r)===String(rid))return +s;return null}
+function nextMine(){let s=mySlot();if(!s)return null;for(let n=S.picks.length+1;n<=252;n++)if(slotAt(n)===s)return n;return null}
+function teamsBefore(){let n=nextMine(),mine=mySlot();if(!n||!mine)return[];let a=[];for(let p=S.picks.length+1;p<n;p++){let s=slotAt(p);if(s!==mine)a.push(ridForSlot(s))}return a.filter(Boolean)}
+function phase(){let r=Math.ceil((S.picks.length+1)/12);return r<=4?'Foundation':r<=10?'Core':r<=16?'Depth':'Upside'}
+
+function fundamental(p){
+  let v=11000-p.rank*34+Math.min(750,p.market*.045),target={QB:27,RB:23,WR:24,TE:24}[p.pos],slope={QB:40,RB:115,WR:72,TE:58}[p.pos],age=clamp((target-p.age)*slope,-900,700);
+  return v+age;
+}
+function baseRate(pos){let t=RAW.filter(p=>p.rank<=120);return count(t,pos)/t.length}
+function velocity(pos){let score=0;[[4,.5],[8,.32],[16,.18]].forEach(([w,wt])=>{let r=S.picks.slice(-w).map(p=>({pos:posOf(p)})),a=count(r,pos),e=Math.max(.35,w*baseRate(pos));score+=wt*(a/e)});return score}
+function roomBias(pos){let rows=S.picks.map((p,i)=>({i:i+1,name:fullName(p),pos:posOf(p)})).filter(x=>x.pos===pos).map(x=>({...x,k:knownByName(x.name)})).filter(x=>x.k);if(rows.length<3)return{delta:0,conf:rows.length/3,n:rows.length};let d=avg(rows.map(x=>x.i-x.k.rank));return{delta:d,conf:clamp(rows.length/10,0,1),n:rows.length}}
+function tierInfo(p){let pool=avail().filter(x=>x.pos===p.pos).sort((a,b)=>fundamental(b)-fundamental(a)),mine=fundamental(p),comp=pool.filter(x=>fundamental(x)>=mine-520),below=pool.filter(x=>fundamental(x)<mine-520).sort((a,b)=>fundamental(b)-fundamental(a))[0];return{remaining:comp.length,cliff:Math.round(below?mine-fundamental(below):900)}}
+function need(roster,pos,pick=S.picks.length+1){let r=Math.ceil(pick/12),n=count(roster,pos);if(pos==='QB'){if(n===0)return 1;if(n===1)return .92;if(n===2)return r<=7?.25:.48;if(n===3)return r>=12?.18:.05;return .02}if(pos==='WR'){if(n<3)return .9;if(n<5)return .62;if(n<7)return r>=8?.38:.22;return .08}if(pos==='RB'){if(n<2)return r<=3?.38:.76;if(n<4)return r>=5?.42:.23;return .09}if(pos==='TE'){if(n===0)return r<=5?.25:.65;if(n===1)return r>=10?.25:.05;return .02}return .1}
+function demand(pos){let ids=teamsBefore();if(!ids.length)return{high:0,total:0,avg:0};let vals=ids.map((rid,i)=>need(rosterById(rid),pos,S.picks.length+1+i));return{high:vals.filter(x=>x>=.6).length,total:ids.length,avg:avg(vals)}}
+function pressure(pos){let vel=velocity(pos),b=roomBias(pos),d=demand(pos),top=avail().filter(p=>p.pos===pos).sort((a,b)=>fundamental(b)-fundamental(a))[0],t=top?tierInfo(top):{remaining:0,cliff:0},dep=t.remaining<=1?1.35:t.remaining===2?1.15:t.remaining<=4?.8:.35,roomAgg=clamp((-b.delta/10)*b.conf,-.5,.75);return{score:Math.round(100*clamp(.34*(vel/1.5)+.28*dep+.26*d.avg+.12*(.5+roomAgg),0,1.35)),vel,b,d,t}}
+function lineup(p,r){let n=count(r,p.pos),rd=Math.ceil((S.picks.length+1)/12);if(p.pos==='QB')return n===0?650:n===1?820:n===2?(rd<=8?120:330):-250;if(p.pos==='WR')return n<3?420:n<5?260:n<7?120:-40;if(p.pos==='RB')return n<2?(rd<=3?120:310):n<4?120:-80;if(p.pos==='TE')return n===0?(p.rank<=50?260:100):n===1?-100:-300;return 0}
+function liquidity(p){let x=Math.min(500,p.market*.05);if(p.age<=25)x+=100;if(p.pos==='QB'&&p.age<=29)x+=130;if(p.pos==='WR'&&p.age<=27)x+=80;if(p.pos==='RB'&&p.age>=28)x-=120;return x}
+function roomValue(p){return S.picks.length+1-p.rank}
+function urgency(p,r){let pr=pressure(p.pos),t=tierInfo(p),n=need(r,p.pos);let x=0;if(pr.score>=75&&t.remaining<=2&&n>=.45)x+=450;else if(pr.score>=60&&t.remaining<=3&&n>=.55)x+=250;if(pr.d.avg>.65)x+=180;return x}
+function score(p,r){let s=fundamental(p)+lineup(p,r)+liquidity(p)+urgency(p,r),rv=roomValue(p),rd=Math.ceil((S.picks.length+1)/12);if(rv>=12)s+=380;else if(rv>=7)s+=220;else if(rv<=-10)s-=180;if(rd>=14&&p.age<=23)s+=(rd-13)*45;if(rd>=14&&p.age>=29)s-=(rd-13)*25;return Math.round(s)}
+function survive(p){let nxt=nextMine();if(!nxt)return null;let away=Math.max(0,nxt-S.picks.length-1);if(!away)return 0;let d=demand(p.pos),pr=pressure(p.pos),b=roomBias(p.pos),cur=S.picks.length+1,expected=p.rank+b.delta*b.conf,z=((expected-cur)-away)*.20,s=1/(1+Math.exp(-z));s-=d.avg*.18;s-=clamp((pr.score-55)/200,-.08,.18);return Math.round(clamp(s,.03,.97)*100)}
+function action(p,r){let sv=survive(p)??50,pr=pressure(p.pos),t=tierInfo(p),n=need(r,p.pos),rv=roomValue(p),other=avail().filter(x=>x.pos!==p.pos).sort((a,b)=>roomValue(b)-roomValue(a))[0];if(pr.score>=72&&t.remaining<=2&&n>=.45&&sv<35)return'PROTECT CLIFF';if(pr.score>=65&&other&&roomValue(other)>=8&&t.remaining>=3)return'EXPLOIT OTHER POSITION';if(rv>=10)return'EXPLOIT FALL';if(sv>=72)return'WAIT POSSIBLE';if(sv<=25)return'TAKE / LOW RETURN ODDS';return'TAKE VALUE'}
+function reasonFor(p,r){
+  let a=action(p,r),sv=survive(p)??50,t=tierInfo(p),pr=pressure(p.pos),rv=roomValue(p),d=demand(p.pos),pieces=[];
+  if(a==='PROTECT CLIFF')pieces.push(`Only ${t.remaining} comparable ${p.pos}${t.remaining===1?'':'s'} remain and ${d.high}/${d.total||0} teams before you are high-need.`);
+  else if(a.includes('EXPLOIT'))pieces.push(rv>=8?`The room has pushed him about ${rv} picks past model value.`:`A run elsewhere is creating value here.`);
+  else pieces.push(`Strong blend of dynasty value and roster fit.`);
+  pieces.push(`${sv}% chance to make it back to your next pick.`);
+  if(pr.score>=60)pieces.push(`${p.pos} pressure is ${pr.score}/100.`);
+  return pieces.join(' ');
+}
+function rows(){let r=rosterById(myRid());return avail().map(p=>({p,score:score(p,r),surv:survive(p),act:action(p,r),why:reasonFor(p,r),tier:tierInfo(p)})).sort((a,b)=>b.score-a.score)}
+
+function renderTop3(){
+  let rs=rows().slice(0,3),mine=mySlot(),on=slotAt(S.picks.length+1),isMine=mine&&on===mine;
+  $('turnBadge').textContent=isMine?'YOUR PICK':'LIVE';
+  $('turnBadge').className='pill '+(isMine?'good':'');
+  if(!rs.length){$('top3').innerHTML='';return}
+  $('headline').textContent=isMine?`Take ${rs[0].p.name}`:`If you were on the clock: ${rs[0].p.name}`;
+  $('headlineReason').textContent=isMine?rs[0].why:`Board is live. These are your current top three choices based on expected roster value and room behavior.`;
+  $('top3').innerHTML=rs.map((x,i)=>`<div class="pickcard ${i===0?'recommended':''}"><div class="ranknum">#${i+1} choice</div><div class="pickname">${esc(x.p.name)}</div><div class="row"><span class="pill">${x.p.pos} · ${x.p.team}</span><span class="pill ${x.act.includes('EXPLOIT')?'good':x.act.includes('PROTECT')?'warn':''}">${x.act}</span></div><div class="why">${esc(x.why)}</div><div class="statline"><span>Score ${x.score.toLocaleString()}</span><span>Survival ${x.surv??'—'}%</span></div><div class="bar"><div class="fill" style="width:${clamp(x.score/12000*100,5,100)}%"></div></div></div>`).join('');
+}
+function renderTrends(){
+  let alerts=[];
+  POS.forEach(pos=>{let p=pressure(pos),b=roomBias(pos),d=demand(pos);
+    if(p.score>=75)alerts.push({sev:'warn',title:`${pos} run is hot`,body:`Pressure ${p.score}/100. ${p.t.remaining} comparable ${pos}${p.t.remaining===1?'':'s'} remain; ${d.high}/${d.total||0} teams before you are high-need.`});
+    if(b.n>=3&&b.delta<=-6)alerts.push({sev:'bad',title:`Room is overdrafting ${pos}`,body:`${pos}s are going about ${Math.abs(b.delta).toFixed(1)} picks earlier than model. Look for value created elsewhere rather than automatically chasing.`});
+    if(b.n>=3&&b.delta>=7)alerts.push({sev:'good',title:`Room is letting ${pos} fall`,body:`${pos}s are going about ${b.delta.toFixed(1)} picks later than model. Waiting may be more viable than consensus ADP implies.`});
+  });
+  let fall=avail().map(p=>({p,rv:roomValue(p)})).sort((a,b)=>b.rv-a.rv)[0];if(fall&&fall.rv>=10)alerts.unshift({sev:'good',title:`Biggest room-created value: ${fall.p.name}`,body:`Still available roughly ${fall.rv} picks past model rank.`});
+  if(!alerts.length)alerts.push({sev:'',title:'No major distortion yet',body:'The room is still close to model expectations. Stay value-driven.'});
+  $('trendAlerts').innerHTML=alerts.slice(0,5).map(a=>`<div class="alert"><div class="row"><strong>${esc(a.title)}</strong>${a.sev?`<span class="pill ${a.sev}">${a.sev==='good'?'EXPLOIT':a.sev==='warn'?'WATCH':'OVERDRAFT'}</span>`:''}</div><div class="small muted" style="margin-top:3px">${esc(a.body)}</div></div>`).join('');
+}
+function pickValue(n){return Math.round(10000*Math.exp(-(n-1)/58))}
+function renderTrade(){
+  let n=S.picks.length+1, r=rows(), best=r[0]; if(!mySlot()||slotAt(n)!==mySlot()||!best){$('tradeAdvice').textContent='Trade analysis activates automatically when you are on the clock.';$('tradeEval').textContent='';return}
+  let cur=pickValue(n), premium=Math.round((best.score-(r[3]?.score||best.score))*0.35), threshold=Math.round(cur+Math.max(250,premium));
+  $('tradeAdvice').innerHTML=`Current pick baseline value: <strong>${cur.toLocaleString()}</strong>. Because ${esc(best.p.name)} is available, require roughly <strong>${threshold.toLocaleString()}</strong> of trade value to move off this pick.`;
+  let td=+$('tradeDownPick').value||0,f=+$('futureFirsts').value||0;if(!td){$('tradeEval').textContent='Enter the trade-down pick and any future 1sts to evaluate an offer.';return}
+  let recv=pickValue(td)+f*2850,ratio=recv/threshold,msg=ratio>=1.12?'ACCEPT — strong premium':ratio>=.97?'FAIR — depends on player tier at new pick':ratio>=.85?'ASK FOR MORE':'DECLINE';
+  $('tradeEval').innerHTML=`<strong>${msg}</strong> · Estimated received value ${recv.toLocaleString()} vs required ${threshold.toLocaleString()} (${Math.round(ratio*100)}%).`;
+}
+function renderRoster(){
+  let r=rosterById(myRid());$('myRoster').innerHTML=r.length?r.map(p=>`<div class="row" style="justify-content:space-between;margin:5px 0"><span>${esc(p.name)}</span><span class="pill">${esc(p.pos)}</span></div>`).join(''):'<span class="muted">Waiting to identify your team.</span>';
+}
+function renderDemand(){let ids=teamsBefore();if(!ids.length){$('demand').innerHTML='<span class="muted">No intervening picks or your team has not been identified.</span>';return}$('demand').innerHTML=POS.map(pos=>{let d=demand(pos);return `<div style="margin-bottom:8px"><div class="row" style="justify-content:space-between"><span>${pos}</span><span>${d.high}/${d.total} high-need</span></div><div class="bar"><div class="fill" style="width:${Math.round(d.avg*100)}%"></div></div></div>`}).join('')}
+function renderMispricing(){$('mispricing').innerHTML=POS.map(pos=>{let b=roomBias(pos),txt=b.n<3?'Learning':b.delta<=-4?`${Math.abs(b.delta).toFixed(1)} picks early`:b.delta>=4?`${b.delta.toFixed(1)} picks late`:'Near market';return `<div class="row" style="justify-content:space-between;margin:6px 0"><span>${pos}</span><span>${txt}</span></div>`}).join('')}
+function renderBeer(){
+  let q=norm($('search').value),pf=$('posFilter').value,rs=rows().filter(x=>(pf==='ALL'||x.p.pos===pf)&&(!q||norm(x.p.name).includes(q)));if(!rs.length){$('tiers').innerHTML='';return}let best=rs[0].score,groups={};rs.slice(0,100).forEach(x=>{let d=best-x.score,k=d<220?'Tier 1 · Draft Now':d<650?'Tier 2 · Strong Value':d<1200?'Tier 3 · Good Pick':d<1900?'Tier 4 · Fair Value':'Tier 5 · Wait';(groups[k]||(groups[k]=[])).push(x)});$('tiers').innerHTML=Object.entries(groups).map(([k,a])=>`<div><div style="font-weight:700;border-bottom:2px solid var(--border);padding:7px 0;margin:7px 0">${k}</div>${a.map(x=>`<div class="player"><div><div class="row"><span class="name">${esc(x.p.name)}</span><span class="pill">${x.p.pos} · ${x.p.team}</span><span class="pill ${x.act.includes('EXPLOIT')?'good':x.act.includes('PROTECT')?'warn':''}">${x.act}</span></div><div class="meta">Model #${x.p.rank} · Age ${x.p.age} · room value ${roomValue(x.p)>=0?'+':''}${roomValue(x.p)} picks · ${x.surv??'—'}% survival</div></div><div class="small">${x.score.toLocaleString()}</div></div>`).join('')}</div>`).join('')}
+function renderAdvanced(){$('momentum').innerHTML=POS.map(pos=>{let p=pressure(pos);return `<div class="row" style="justify-content:space-between;margin:6px 0"><span>${pos}</span><span>${p.score}/100 · ${p.vel.toFixed(1)}×</span></div>`}).join('');$('roomLearning').innerHTML=POS.map(pos=>{let b=roomBias(pos);return `<div class="row" style="justify-content:space-between;margin:6px 0"><span>${pos}</span><span>${b.n<3?'Learning':`${b.delta>0?'+':''}${b.delta.toFixed(1)} picks`}</span></div>`}).join('')}
+function renderTeamInspect(){let rid=$('teamInspect').value;if(!rid){$('teamRoster').innerHTML='';return}let r=rosterById(rid);$('teamRoster').innerHTML=r.length?r.map(p=>`<span class="pill" style="margin:3px">${p.pos} · ${esc(p.name)}</span>`).join(''):'<span class="muted">No picks yet.</span>'}
+function render(){
+  let pc=S.picks.length,next=pc+1,slot=next<=252?slotAt(next):null,rid=slot?ridForSlot(slot):null,t=S.teams.find(x=>String(x.roster_id)===String(rid)),mn=nextMine();
+  $('pickCount').textContent=pc;$('onClock').textContent=next<=252?pickLabel(next):'Done';$('onClockTeam').textContent=t?`${t.name} · slot ${slot}`:(slot?`Slot ${slot}`:'—');$('myNext').textContent=mn?pickLabel(mn):'—';$('myNextSub').textContent=mn?`${Math.max(0,mn-next)} picks away`:'Auto-detecting';$('phase').textContent=phase();
+  renderTop3();renderTrends();renderTrade();renderRoster();renderDemand();renderMispricing();renderBeer();renderAdvanced();renderTeamInspect();
+}
+function rebuildMenus(){
+  let old=$('myTeam').value,inspect=$('teamInspect').value,ordered=Object.entries(S.draft?.slot_to_roster_id||{}).map(([slot,rid])=>({slot:+slot,rid:String(rid)})).sort((a,b)=>a.slot-b.slot),opts=ordered.map(x=>{let t=S.teams.find(y=>String(y.roster_id)===x.rid);return `<option value="${x.rid}">Slot ${x.slot} — ${esc(t?.name||`Roster ${x.rid}`)}</option>`}).join('');
+  $('myTeam').innerHTML='<option value="">Auto-detect / choose my team</option>'+opts;$('teamInspect').innerHTML=opts;if(old&&ordered.some(x=>x.rid===old))$('myTeam').value=old;if(inspect&&ordered.some(x=>x.rid===inspect))$('teamInspect').value=inspect;
+  // Best-effort auto-detect by browser-saved roster for this draft; once chosen it persists on the device.
+  let saved=localStorage.getItem('dynasty_my_roster');if(!$('myTeam').value&&saved&&ordered.some(x=>x.rid===saved))$('myTeam').value=saved;
+}
+async function fetchJSON(url){let r=await fetch(url,{cache:'no-store'});if(!r.ok)throw new Error(`${r.status} ${r.statusText}`);return r.json()}
+async function sync(){
+  let id=$('draftId').value.trim();if(!id)return;
+  try{
+    $('syncText').textContent='Syncing…';$('syncDot').classList.remove('on');
+    let draft=await fetchJSON(`${API}/draft/${id}`),picks=await fetchJSON(`${API}/draft/${id}/picks`),users=[],rosters=[];
+    if(draft.league_id)[users,rosters]=await Promise.all([fetchJSON(`${API}/league/${draft.league_id}/users`),fetchJSON(`${API}/league/${draft.league_id}/rosters`)]);
+    S.draft=draft;S.picks=picks.slice().sort((a,b)=>a.pick_no-b.pick_no);S.users=users;S.rosters=rosters;
+    let um=Object.fromEntries(users.map(u=>[String(u.user_id),u]));S.teams=rosters.map(r=>{let u=um[String(r.owner_id)]||{};return{roster_id:r.roster_id,name:u.metadata?.team_name||u.display_name||u.username||`Roster ${r.roster_id}`}});
+    rebuildMenus();$('syncDot').classList.add('on');$('syncText').textContent=`Live · ${new Date().toLocaleTimeString()}`;log(`Synced ${S.picks.length} picks`);render();
+  }catch(e){$('syncText').textContent='Sync error';log(`ERROR ${e.message}`)}
+}
+$('syncNow').addEventListener('click',sync);$('myTeam').addEventListener('change',()=>{if($('myTeam').value)localStorage.setItem('dynasty_my_roster',$('myTeam').value);render()});$('teamInspect').addEventListener('change',renderTeamInspect);$('posFilter').addEventListener('change',renderBeer);$('search').addEventListener('input',renderBeer);$('tradeDownPick').addEventListener('input',renderTrade);$('futureFirsts').addEventListener('input',renderTrade);
+setInterval(()=>{if($('autoSync').checked)sync()},4000);sync();
+</script>
+</body>
+</html>
