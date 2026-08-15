@@ -47,7 +47,7 @@ summary{cursor:pointer;font-weight:650}
   <div class="row" style="justify-content:space-between;margin-bottom:10px">
     <div>
       <h1>Dynasty Draft Command Center</h1>
-      <div class="small muted">12T SF · ½ PPR · 3RR · 21 rounds · balanced dynasty · verified build</div>
+      <div class="small muted">12T SF · ½ PPR · 3RR · 21 rounds · balanced dynasty · V22 live-fix</div>
     </div>
     <div class="row"><span id="syncDot" class="statusdot"></span><span id="syncText" class="small muted">Connecting…</span></div>
   </div>
@@ -137,7 +137,7 @@ summary{cursor:pointer;font-weight:650}
   <details class="card section">
     <summary>Connection / settings</summary>
     <div class="grid g2" style="margin-top:10px">
-      <label><div class="k">Sleeper draft ID</div><input id="draftId" value="1393972546394656768"></label>
+      <label><div class="k">Sleeper draft ID</div><input id="draftId" value="1386225932989132800"></label>
       <div><div class="k">Live roster mapping</div><div id="mappingStatus" class="small muted" style="margin-top:8px">Waiting for Sleeper.</div></div>
     </div>
     <div class="row" style="margin-top:9px">
@@ -149,7 +149,7 @@ summary{cursor:pointer;font-weight:650}
 </main>
 
 <script>
-const API='/api/sleeper?path=', POS=['QB','RB','WR','TE'];
+const API_PROXY='/api/sleeper'; const apiUrl=(path)=>`${API_PROXY}?path=${encodeURIComponent(path)}`; const POS=['QB','RB','WR','TE'];
 const SLEEPER_ADP=new Map([["Bijan Robinson", 2.0], ["Josh Allen", 2.2], ["Jahmyr Gibbs", 3.5], ["Ja'Marr Chase", 4.4], ["Drake Maye", 6.3], ["Puka Nacua", 6.2], ["Jaxon Smith-Njigba", 6.2], ["Amon-Ra St. Brown", 10.0], ["Jayden Daniels", 12.2], ["Ashton Jeanty", 12.9], ["Lamar Jackson", 12.7], ["Joe Burrow", 14.7], ["Caleb Williams", 15.5], ["Justin Jefferson", 15.7], ["Brock Bowers", 16.1], ["CeeDee Lamb", 17.6], ["Omarion Hampton", 18.7], ["Jeremiyah Love", 18.7], ["De'Von Achane", 19.9], ["Malik Nabers", 20.0], ["Trey McBride", 21.3], ["Jonathan Taylor", 22.2], ["Drake London", 23.1], ["Justin Herbert", 23.9], ["James Cook", 25.2], ["Jaxson Dart", 25.9], ["Christian McCaffrey", 27.6], ["Jalen Hurts", 28.0], ["Trevor Lawrence", 31.6], ["Tetairoa McMillan", 31.8], ["Patrick Mahomes", 33.1], ["Chase Brown", 34.1], ["George Pickens", 34.2], ["Kenneth Walker III", 35.6], ["Colston Loveland", 35.8], ["Nico Collins", 36.8], ["Bo Nix", 37.2], ["Emeka Egbuka", 37.7], ["Chris Olave", 40.7], ["Brock Purdy", 40.9], ["Saquon Barkley", 44.6], ["Breece Hall", 45.1], ["Garrett Wilson", 45.2], ["Dak Prescott", 46.5], ["TreVeyon Henderson", 46.5], ["Rashee Rice", 47.2], ["Tyler Warren", 47.4], ["Carnell Tate", 47.9], ["Ladd McConkey", 48.1], ["A.J. Brown", 50.0], ["Quinshon Judkins", 52.3], ["Luther Burden III", 54.2], ["Kyren Williams", 55.2], ["Bucky Irving", 57.6], ["Jordan Love", 58.4], ["Zay Flowers", 60.9], ["Javonte Williams", 61.2], ["Tee Higgins", 61.4], ["Rome Odunze", 61.4], ["Derrick Henry", 62.5], ["Cam Skattebo", 62.7], ["Jordyn Tyson", 63.0], ["DeVonta Smith", 63.4], ["Jared Goff", 63.9], ["Travis Etienne", 65.7], ["Josh Jacobs", 67.1], ["Jadarian Price", 67.3], ["Harold Fannin Jr.", 67.7], ["Fernando Mendoza", 67.7], ["Marvin Harrison Jr.", 69.6], ["Baker Mayfield", 69.9], ["Jaylen Waddle", 70.2], ["Cam Ward", 70.7], ["Brian Thomas Jr.", 70.7], ["Tucker Kraft", 72.2], ["Makai Lemon", 73.3], ["Tyler Shough", 73.5], ["Jameson Williams", 74.6], ["C.J. Stroud", 80.3], ["Bhayshul Tuten", 80.5], ["Matthew Stafford", 82.2], ["Sam LaPorta", 82.3], ["Kyler Murray", 82.7], ["D'Andre Swift", 84.7], ["Sam Darnold", 85.1], ["DJ Moore", 85.4], ["Kyle Pitts", 85.8], ["Christian Watson", 89.8], ["KC Concepcion", 91.1], ["Alec Pierce", 92.1], ["Terry McLaurin", 92.3], ["Bryce Young", 93.4], ["Malik Willis", 95.2], ["RJ Harvey", 95.9], ["Michael Wilson", 97.1], ["Davante Adams", 100.1], ["Parker Washington", 100.9], ["Mike Evans", 101.6], ["Daniel Jones", 102.2], ["Kenyon Sadiq", 102.4], ["Jaylen Warren", 102.9], ["Chuba Hubbard", 103.3], ["Jordan Addison", 103.3]]);
 
 const DN_NOW=new Map([["Josh Allen", {"rank": 1, "value": 10256}], ["Bijan Robinson", {"rank": 2, "value": 10018}], ["Drake Maye", {"rank": 3, "value": 9785}], ["Jahmyr Gibbs", {"rank": 4, "value": 9558}], ["Ja'Marr Chase", {"rank": 5, "value": 9336}], ["Jaxon Smith-Njigba", {"rank": 6, "value": 9119}], ["Puka Nacua", {"rank": 7, "value": 8907}], ["Caleb Williams", {"rank": 8, "value": 8700}], ["Jayden Daniels", {"rank": 9, "value": 8498}], ["Ashton Jeanty", {"rank": 10, "value": 8301}], ["Brock Bowers", {"rank": 11, "value": 8108}], ["Justin Jefferson", {"rank": 12, "value": 7920}], ["Amon-Ra St. Brown", {"rank": 13, "value": 7736}], ["CeeDee Lamb", {"rank": 14, "value": 7556}], ["De'Von Achane", {"rank": 15, "value": 7381}], ["Joe Burrow", {"rank": 16, "value": 7209}], ["Malik Nabers", {"rank": 17, "value": 7042}], ["Jeremiyah Love", {"rank": 18, "value": 6878}], ["Justin Herbert", {"rank": 19, "value": 6719}], ["Trey McBride", {"rank": 20, "value": 6563}], ["Patrick Mahomes", {"rank": 21, "value": 6410}], ["Lamar Jackson", {"rank": 22, "value": 6261}], ["Omarion Hampton", {"rank": 23, "value": 6116}], ["Jaxson Dart", {"rank": 24, "value": 5974}], ["Drake London", {"rank": 25, "value": 5835}], ["Jalen Hurts", {"rank": 26, "value": 5699}], ["Tetairoa McMillan", {"rank": 27, "value": 5567}], ["Trevor Lawrence", {"rank": 28, "value": 5438}], ["Emeka Egbuka", {"rank": 29, "value": 5312}], ["Garrett Wilson", {"rank": 30, "value": 5188}], ["Jonathan Taylor", {"rank": 31, "value": 5068}], ["James Cook", {"rank": 32, "value": 4950}], ["Brock Purdy", {"rank": 33, "value": 4835}], ["George Pickens", {"rank": 34, "value": 4723}], ["Carnell Tate", {"rank": 35, "value": 4613}], ["Bo Nix", {"rank": 36, "value": 4506}], ["Breece Hall", {"rank": 37, "value": 4401}], ["Colston Loveland", {"rank": 38, "value": 4299}], ["Jordan Love", {"rank": 39, "value": 4199}], ["Ladd McConkey", {"rank": 40, "value": 4102}], ["Quinshon Judkins", {"rank": 41, "value": 4006}], ["TreVeyon Henderson", {"rank": 42, "value": 3913}], ["Nico Collins", {"rank": 43, "value": 3822}], ["Kenneth Walker III", {"rank": 44, "value": 3734}], ["Tyler Warren", {"rank": 45, "value": 3647}], ["Chris Olave", {"rank": 46, "value": 3562}], ["Fernando Mendoza", {"rank": 47, "value": 3479}], ["Marvin Harrison Jr.", {"rank": 48, "value": 3399}], ["Rome Odunze", {"rank": 49, "value": 3320}], ["Christian McCaffrey", {"rank": 50, "value": 3243}], ["Dak Prescott", {"rank": 51, "value": 3167}], ["Brian Thomas Jr.", {"rank": 52, "value": 3094}], ["Jordyn Tyson", {"rank": 53, "value": 3022}], ["Makai Lemon", {"rank": 54, "value": 2952}], ["Baker Mayfield", {"rank": 55, "value": 2883}], ["Jared Goff", {"rank": 56, "value": 2816}], ["A.J. Brown", {"rank": 57, "value": 2751}], ["Saquon Barkley", {"rank": 58, "value": 2687}], ["Rashee Rice", {"rank": 59, "value": 2624}], ["Cam Ward", {"rank": 60, "value": 2564}], ["Tee Higgins", {"rank": 61, "value": 2504}], ["Luther Burden III", {"rank": 62, "value": 2446}], ["Jaylen Waddle", {"rank": 63, "value": 2389}], ["Cam Skattebo", {"rank": 64, "value": 2334}], ["Zay Flowers", {"rank": 65, "value": 2226}], ["Javonte Williams", {"rank": 66, "value": 2175}], ["DeVonta Smith", {"rank": 67, "value": 2124}], ["Kyren Williams", {"rank": 68, "value": 2075}], ["Chase Brown", {"rank": 69, "value": 2027}], ["Jadarian Price", {"rank": 70, "value": 1980}], ["Bucky Irving", {"rank": 71, "value": 1934}], ["Tucker Kraft", {"rank": 72, "value": 1889}], ["Kyle Pitts", {"rank": 73, "value": 1845}], ["Josh Jacobs", {"rank": 74, "value": 1802}], ["Harold Fannin Jr.", {"rank": 75, "value": 1760}], ["Travis Etienne", {"rank": 76, "value": 1719}], ["Sam Darnold", {"rank": 77, "value": 1679}], ["Jameson Williams", {"rank": 78, "value": 1640}], ["KC Concepcion", {"rank": 79, "value": 1602}]]);
@@ -164,10 +164,18 @@ const RAW0=[
 const CURRENT=[["Josh Allen", "QB", "BUF", 1, 10256, 30], ["Bijan Robinson", "RB", "ATL", 2, 10018, 24], ["Drake Maye", "QB", "NE", 3, 9785, 23], ["Jahmyr Gibbs", "RB", "DET", 4, 9558, 24], ["Ja'Marr Chase", "WR", "CIN", 5, 9336, 26], ["Jaxon Smith-Njigba", "WR", "SEA", 6, 9119, 24], ["Puka Nacua", "WR", "LAR", 7, 8907, 25], ["Caleb Williams", "QB", "CHI", 8, 8700, 24], ["Jayden Daniels", "QB", "WAS", 9, 8498, 25], ["Ashton Jeanty", "RB", "LV", 10, 8301, 22], ["Brock Bowers", "TE", "LV", 11, 8108, 23], ["Justin Jefferson", "WR", "MIN", 12, 7920, 27], ["Amon-Ra St. Brown", "WR", "DET", 13, 7736, 26], ["CeeDee Lamb", "WR", "DAL", 14, 7556, 27], ["De'Von Achane", "RB", "MIA", 15, 7381, 24], ["Joe Burrow", "QB", "CIN", 16, 7209, 29], ["Malik Nabers", "WR", "NYG", 17, 7042, 23], ["Jeremiyah Love", "RB", "ARI", 18, 6878, 21], ["Justin Herbert", "QB", "LAC", 19, 6719, 28], ["Trey McBride", "TE", "ARI", 20, 6563, 26], ["Patrick Mahomes", "QB", "KC", 21, 6410, 30], ["Lamar Jackson", "QB", "BAL", 22, 6261, 29], ["Omarion Hampton", "RB", "LAC", 23, 6116, 23], ["Jaxson Dart", "QB", "NYG", 24, 5974, 23], ["Drake London", "WR", "ATL", 25, 5835, 25], ["Jalen Hurts", "QB", "PHI", 26, 5983, 28], ["Tetairoa McMillan", "WR", "CAR", 27, 5678, 23], ["Trevor Lawrence", "QB", "JAX", 28, 5655, 26], ["Emeka Egbuka", "WR", "TB", 29, 5259, 23], ["Jonathan Taylor", "RB", "IND", 30, 5603, 27], ["James Cook", "RB", "BUF", 31, 5169, 26], ["Garrett Wilson", "WR", "NYJ", 32, 4999, 26], ["Brock Purdy", "QB", "SF", 33, 5028, 26], ["Carnell Tate", "WR", "TEN", 34, 4582, 21], ["George Pickens", "WR", "DAL", 35, 5028, 25], ["Bo Nix", "QB", "DEN", 36, 5091, 26], ["Colston Loveland", "TE", "CHI", 37, 5061, 22], ["Breece Hall", "RB", "NYJ", 38, 4214, 25], ["Ladd McConkey", "WR", "LAC", 39, 3612, 24], ["Jordan Love", "QB", "GB", 40, 3733, 27], ["Quinshon Judkins", "RB", "CLE", 41, 4206, 22], ["Nico Collins", "WR", "HOU", 42, 3327, 27], ["Kenneth Walker III", "RB", "KC", 43, 3593, 25], ["Tyler Warren", "TE", "IND", 44, 4070, 24], ["Chris Olave", "WR", "NO", 45, 3356, 26], ["TreVeyon Henderson", "RB", "NE", 46, 3597, 23], ["Fernando Mendoza", "QB", "LV", 47, 3375, 22], ["Rome Odunze", "WR", "CHI", 48, 3366, 24], ["Christian McCaffrey", "RB", "SF", 49, 2955, 30], ["Jordyn Tyson", "WR", "NO", 50, 3405, 21], ["Marvin Harrison Jr.", "WR", "ARI", 51, 3009, 24], ["Dak Prescott", "QB", "DAL", 52, 2754, 33], ["Brian Thomas Jr.", "WR", "JAX", 53, 3112, 23], ["Zay Flowers", "WR", "BAL", 54, 2834, 25], ["Makai Lemon", "WR", "PHI", 55, 2883, 22], ["Rashee Rice", "WR", "KC", 56, 2563, 26], ["Baker Mayfield", "QB", "TB", 57, 2861, 31], ["A.J. Brown", "WR", "NE", 58, 2284, 29], ["Luther Burden III", "WR", "CHI", 59, 2781, 22], ["Jared Goff", "QB", "DET", 60, 2948, 31], ["Chase Brown", "RB", "CIN", 61, 2579, 26], ["Tee Higgins", "WR", "CIN", 62, 2270, 27], ["DeVonta Smith", "WR", "PHI", 63, 2054, 27], ["Saquon Barkley", "RB", "PHI", 64, 2279, 29], ["Cam Skattebo", "RB", "NYG", 65, 2515, 24], ["Jaylen Waddle", "WR", "DEN", 66, 2283, 27], ["Javonte Williams", "RB", "DAL", 67, 2061, 26], ["Cam Ward", "QB", "TEN", 68, 1909, 24], ["Kyren Williams", "RB", "LAR", 69, 2168, 25], ["Jadarian Price", "RB", "SEA", 70, 2039, 22], ["Bucky Irving", "RB", "TB", 71, 1915, 24], ["Kyle Pitts", "TE", "ATL", 72, 2172, 25], ["Harold Fannin Jr.", "TE", "CLE", 73, 2121, 22], ["Tucker Kraft", "TE", "GB", 74, 1892, 25], ["Josh Jacobs", "RB", "GB", 75, 1514, 28], ["Jameson Williams", "WR", "DET", 76, 1634, 25], ["KC Concepcion", "WR", "CLE", 77, 1813, 21], ["Travis Etienne", "RB", "NO", 78, 1836, 27], ["Sam Darnold", "QB", "SEA", 79, 1565, 29], ["Sam LaPorta", "TE", "DET", 80, 1346, 25], ["C.J. Stroud", "QB", "HOU", 81, 1597, 24], ["Christian Watson", "WR", "GB", 82, 1603, 27], ["Bhayshul Tuten", "RB", "JAX", 83, 1439, 23], ["Kyler Murray", "QB", "MIN", 84, 1197, 29], ["Jordan Addison", "WR", "MIN", 85, 1319, 24], ["Omar Cooper", "WR", "NYJ", 86, 1222, 22], ["Daniel Jones", "QB", "IND", 87, 1142, 29], ["DJ Moore", "WR", "BUF", 88, 1217, 29], ["Alec Pierce", "WR", "IND", 89, 1298, 26], ["Tyler Shough", "QB", "NO", 90, 1220, 27], ["D'Andre Swift", "RB", "CHI", 91, 1169, 27], ["Malik Willis", "QB", "MIA", 92, 1233, 27], ["Michael Wilson", "WR", "ARI", 93, 1048, 26], ["Denzel Boston", "WR", "CLE", 94, 1089, 22], ["Terry McLaurin", "WR", "WAS", 95, 914, 30], ["Kenyon Sadiq", "TE", "NYJ", 96, 1186, 21], ["Derrick Henry", "RB", "BAL", 97, 872, 32], ["Ty Simpson", "QB", "LAR", 98, 1131, 23], ["Bryce Young", "QB", "CAR", 99, 978, 25], ["Jayden Reed", "WR", "GB", 100, 1088, 26]].map((x,i)=>({name:x[0],pos:x[1],team:x[2],rank:x[3],market:x[4],age:x[5]}));
 const MERGED=new Map(RAW0.map(p=>[p.name.toLowerCase(),p]));CURRENT.forEach(p=>MERGED.set(p.name.toLowerCase(),{...(MERGED.get(p.name.toLowerCase())||{}),...p}));
 const LATEST=[["Josh Allen",1,10256],["Bijan Robinson",2,10018],["Drake Maye",3,9785],["Jaxon Smith-Njigba",4,9558],["Jahmyr Gibbs",5,9336],["Ja'Marr Chase",6,9119],["Puka Nacua",7,8907],["Caleb Williams",8,8700],["Jayden Daniels",9,8498],["Ashton Jeanty",10,8301],["Justin Jefferson",11,8108],["Brock Bowers",12,7920],["De'Von Achane",13,7736],["CeeDee Lamb",14,7556],["Amon-Ra St. Brown",15,7381],["Malik Nabers",16,7209],["Joe Burrow",17,7042],["Jeremiyah Love",18,6878],["Justin Herbert",19,6719],["Trey McBride",20,6563],["Patrick Mahomes",21,6410],["Lamar Jackson",22,6261],["Omarion Hampton",23,6116],["Jaxson Dart",24,5974],["Drake London",25,5835]];LATEST.forEach(([n,r,v])=>{let k=MERGED.get(n.toLowerCase());if(k)MERGED.set(n.toLowerCase(),{...k,rank:r,market:v})});
-const RAW=[...MERGED.values()].sort((a,b)=>a.rank-b.rank).map((p,i)=>{
+const playerKey=s=>String(s||'').toLowerCase().replace(/\b(jr|sr|ii|iii|iv)\b/g,'').replace(/[^a-z0-9]/g,'');
+const RAW_ALL=[...MERGED.values()].sort((a,b)=>a.rank-b.rank).map((p,i)=>{
  const k=KTC_NOW.get(p.name)||KTC_EXTRA.get(p.name),d=DN_NOW.get(p.name);
  return {...p,id:i,adp:SLEEPER_ADP.get(p.name)??p.rank,ktcRank:k?.rank??null,ktcValue:k?.value??p.market,dnRank:d?.rank??p.rank,dnValue:d?.value??p.market,fpDyn:FP_DYNASTY.get(p.name)??null,fp2026:FP_2026.get(p.name)??null,ktc2026:KTC_2026.get(p.name)??null};
 });
+const _playerSeen=new Set();
+const RAW=RAW_ALL.filter(p=>{
+ const key=playerKey(p.name);
+ if(_playerSeen.has(key))return false;
+ _playerSeen.add(key);
+ return true;
+}).map((p,i)=>({...p,id:i}));
 
 let S={draft:null,picks:[],users:[],rosters:[],teams:[],traded:[]},M={picks:[],profiles:{}},MODE='live',STATE_REV=0,CACHE={key:'',rosters:new Map(),picked:null,available:null,teamsBefore:null,bias:{},demand:{},pressure:{},tier:new Map(),survive:new Map(),rows:null,mc:null};
 const $=id=>document.getElementById(id),clamp=(x,a,b)=>Math.max(a,Math.min(b,x)),avg=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:0,count=(a,p)=>a.filter(x=>x.pos===p).length;
@@ -539,21 +547,21 @@ async function sync(){
   try{
     $('syncText').textContent='Syncing…';$('syncDot').classList.remove('on');
     const [d,p]=await Promise.all([
-      fetchJSON(`${API}/draft/${id}`,'Draft'),
-      fetchJSON(`${API}/draft/${id}/picks`,'Picks')
+      fetchJSON(apiUrl(`/draft/${id}`),'Draft'),
+      fetchJSON(apiUrl(`/draft/${id}/picks`),'Picks')
     ]);
     S.draft=d;S.picks=(p||[]).slice().sort((a,b)=>a.pick_no-b.pick_no);
     S.liveHealthy=true;S.lastError=null;bump();
     $('syncDot').classList.add('on');
-    $('syncText').textContent=`${d.status==='drafting'?'LIVE':'Connected'} · ${new Date().toLocaleTimeString()}`;
+    $('syncText').textContent=`${d.status==='drafting'?'LIVE':d.status==='pre_draft'?'PRE-DRAFT':'Connected'} · ${new Date().toLocaleTimeString()}`;
     log(`CORE SYNC OK · ${S.picks.length} picks · ${d.status||'unknown'}`);
     render();
 
     // Optional metadata must never break core live syncing
     Promise.all([
-      fetchJSON(`${API}/draft/${id}/traded_picks`,'Traded picks').catch(()=>[]),
-      d.league_id?fetchJSON(`${API}/league/${d.league_id}/users`,'League users').catch(()=>[]):Promise.resolve([]),
-      d.league_id?fetchJSON(`${API}/league/${d.league_id}/rosters`,'League rosters').catch(()=>[]):Promise.resolve([])
+      fetchJSON(apiUrl(`/draft/${id}/traded_picks`),'Traded picks').catch(()=>[]),
+      d.league_id?fetchJSON(apiUrl(`/league/${d.league_id}/users`),'League users').catch(()=>[]):Promise.resolve([]),
+      d.league_id?fetchJSON(apiUrl(`/league/${d.league_id}/rosters`),'League rosters').catch(()=>[]):Promise.resolve([])
     ]).then(([t,u,r])=>{
       S.traded=t||[];
       if(u.length&&r.length){
@@ -575,8 +583,8 @@ async function sync(){
 async function testSleeperAPI(){
   let id=$('draftId').value.trim();
   try{
-    const d=await fetchJSON(`${API}/draft/${id}`,'Draft test');
-    const p=await fetchJSON(`${API}/draft/${id}/picks`,'Picks test');
+    const d=await fetchJSON(apiUrl(`/draft/${id}`),'Draft test');
+    const p=await fetchJSON(apiUrl(`/draft/${id}/picks`),'Picks test');
     alert(`PASS — status: ${d.status||'unknown'}; picks: ${p.length}`);
   }catch(e){alert(`FAIL — ${e.message}`)}
 }
