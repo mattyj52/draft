@@ -149,7 +149,7 @@ summary{cursor:pointer;font-weight:650}
 </main>
 
 <script>
-const API='https://api.sleeper.app/v1', POS=['QB','RB','WR','TE'];
+const API='/api/sleeper?path=', POS=['QB','RB','WR','TE'];
 let SYNC_IN_FLIGHT=false,NEXT_SYNC_ALLOWED=0,LAST_META_SYNC=0;
 const SLEEPER_ADP=new Map([["Bijan Robinson", 2.0], ["Josh Allen", 2.2], ["Jahmyr Gibbs", 3.5], ["Ja'Marr Chase", 4.4], ["Drake Maye", 6.3], ["Puka Nacua", 6.2], ["Jaxon Smith-Njigba", 6.2], ["Amon-Ra St. Brown", 10.0], ["Jayden Daniels", 12.2], ["Ashton Jeanty", 12.9], ["Lamar Jackson", 12.7], ["Joe Burrow", 14.7], ["Caleb Williams", 15.5], ["Justin Jefferson", 15.7], ["Brock Bowers", 16.1], ["CeeDee Lamb", 17.6], ["Omarion Hampton", 18.7], ["Jeremiyah Love", 18.7], ["De'Von Achane", 19.9], ["Malik Nabers", 20.0], ["Trey McBride", 21.3], ["Jonathan Taylor", 22.2], ["Drake London", 23.1], ["Justin Herbert", 23.9], ["James Cook", 25.2], ["Jaxson Dart", 25.9], ["Christian McCaffrey", 27.6], ["Jalen Hurts", 28.0], ["Trevor Lawrence", 31.6], ["Tetairoa McMillan", 31.8], ["Patrick Mahomes", 33.1], ["Chase Brown", 34.1], ["George Pickens", 34.2], ["Kenneth Walker III", 35.6], ["Colston Loveland", 35.8], ["Nico Collins", 36.8], ["Bo Nix", 37.2], ["Emeka Egbuka", 37.7], ["Chris Olave", 40.7], ["Brock Purdy", 40.9], ["Saquon Barkley", 44.6], ["Breece Hall", 45.1], ["Garrett Wilson", 45.2], ["Dak Prescott", 46.5], ["TreVeyon Henderson", 46.5], ["Rashee Rice", 47.2], ["Tyler Warren", 47.4], ["Carnell Tate", 47.9], ["Ladd McConkey", 48.1], ["A.J. Brown", 50.0], ["Quinshon Judkins", 52.3], ["Luther Burden III", 54.2], ["Kyren Williams", 55.2], ["Bucky Irving", 57.6], ["Jordan Love", 58.4], ["Zay Flowers", 60.9], ["Javonte Williams", 61.2], ["Tee Higgins", 61.4], ["Rome Odunze", 61.4], ["Derrick Henry", 62.5], ["Cam Skattebo", 62.7], ["Jordyn Tyson", 63.0], ["DeVonta Smith", 63.4], ["Jared Goff", 63.9], ["Travis Etienne", 65.7], ["Josh Jacobs", 67.1], ["Jadarian Price", 67.3], ["Harold Fannin Jr.", 67.7], ["Fernando Mendoza", 67.7], ["Marvin Harrison Jr.", 69.6], ["Baker Mayfield", 69.9], ["Jaylen Waddle", 70.2], ["Cam Ward", 70.7], ["Brian Thomas Jr.", 70.7], ["Tucker Kraft", 72.2], ["Makai Lemon", 73.3], ["Tyler Shough", 73.5], ["Jameson Williams", 74.6], ["C.J. Stroud", 80.3], ["Bhayshul Tuten", 80.5], ["Matthew Stafford", 82.2], ["Sam LaPorta", 82.3], ["Kyler Murray", 82.7], ["D'Andre Swift", 84.7], ["Sam Darnold", 85.1], ["DJ Moore", 85.4], ["Kyle Pitts", 85.8], ["Christian Watson", 89.8], ["KC Concepcion", 91.1], ["Alec Pierce", 92.1], ["Terry McLaurin", 92.3], ["Bryce Young", 93.4], ["Malik Willis", 95.2], ["RJ Harvey", 95.9], ["Michael Wilson", 97.1], ["Davante Adams", 100.1], ["Parker Washington", 100.9], ["Mike Evans", 101.6], ["Daniel Jones", 102.2], ["Kenyon Sadiq", 102.4], ["Jaylen Warren", 102.9], ["Chuba Hubbard", 103.3], ["Jordan Addison", 103.3]]);
 
@@ -526,7 +526,7 @@ async function fetchJSON(u,label='Sleeper'){
     return await r.json();
   }catch(e){
     if(e.name==='AbortError')throw new Error(`${label}: request timed out`);
-    if(e instanceof TypeError)throw new Error(`${label}: browser could not reach Sleeper API (network/CORS)`);
+    if(e instanceof TypeError)throw new Error(`${label}: browser could not reach the Vercel Sleeper proxy`);
     throw e;
   }finally{clearTimeout(timer)}
 } async function sync(){
