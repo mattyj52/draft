@@ -26,7 +26,7 @@ button.primary{background:var(--accent);border-color:var(--accent);color:#071024
 .hero{background:#13254b;border:1px solid #2e4f90;border-radius:18px;padding:14px}
 .hero .headline{font-weight:800;font-size:19px}.hero .reason{font-size:12px;color:#d5ddf0;margin-top:5px}
 .pickgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:10px}
-.pickcard.recommended{border-color:var(--accent);background:#14274f}.ranknum{font-size:11px;color:var(--muted)}.pickname{font-size:17px;font-weight:750;margin:3px 0}.why{font-size:12px;color:#cdd6e8;margin-top:6px;min-height:48px}.strategy{font-size:11px;margin-top:7px;padding:7px 8px;border-radius:9px;background:#0e1930;border:1px solid var(--border)}.confidence{font-size:11px;color:var(--muted);margin-top:7px}
+.pickcard.recommended{border-color:var(--accent);background:#14274f}.ranknum{font-size:11px;color:var(--muted)}.pickname{font-size:17px;font-weight:750;margin:3px 0}.why{font-size:12px;color:#cdd6e8;margin-top:6px;min-height:48px}.strategy{font-size:11px;margin-top:7px;padding:7px 8px;border-radius:9px;background:#0e1930;border:1px solid var(--border)}.confidence{font-size:11px;color:var(--muted);margin-top:7px}.windowgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-top:7px}.windowchip{border:1px solid var(--border);border-radius:8px;padding:6px;background:#0d172b;text-align:center}.windowchip .wl{font-size:9px;color:var(--muted);text-transform:uppercase}.windowchip .wv{font-size:13px;font-weight:700;margin-top:2px}.simnote{font-size:11px;color:var(--muted);margin-top:6px}
 .statline{display:flex;justify-content:space-between;gap:8px;font-size:11px;margin-top:6px;color:var(--muted)}
 .bar{height:8px;background:#0d1529;border-radius:999px;overflow:hidden;margin-top:6px}.fill{height:100%;background:var(--accent)}
 .alert{padding:10px;border-radius:12px;background:#10192d;border:1px solid var(--border);margin-bottom:7px}.alert strong{font-size:13px}
@@ -301,6 +301,51 @@ function strategyVector(roster){
   let young=roster.filter(p=>p.age<=24).length,prime=roster.filter(p=>p.age>=25&&p.age<=28).length,older=roster.filter(p=>p.age>=29).length;
   return {q,rb,wr,te,young,prime,older,n:roster.length};
 }
+
+function competitiveWindow(roster){
+  if(!roster.length) return {balanced:70,winNow:15,winLater:15};
+  let now=0,later=0,bal=0;
+  roster.forEach(p=>{
+    let age=p.age||99;
+    if(p.pos==='QB'){
+      if(age<=27){later+=1.15;bal+=.85}
+      else if(age<=31){now+=.9;bal+=1.0}
+      else {now+=1.15;bal+=.25}
+    }else if(p.pos==='RB'){
+      if(age<=23){later+=1.0;bal+=.8}
+      else if(age<=26){now+=1.0;bal+=.9}
+      else {now+=1.3;bal+=.15}
+    }else if(p.pos==='WR'){
+      if(age<=24){later+=1.1;bal+=.95}
+      else if(age<=28){now+=.8;bal+=1.05}
+      else {now+=1.15;bal+=.3}
+    }else if(p.pos==='TE'){
+      if(age<=24){later+=1.0;bal+=.8}
+      else if(age<=28){now+=.7;bal+=.95}
+      else {now+=1.0;bal+=.35}
+    }
+  });
+  // Structural balance pulls toward balanced.
+  let structural=0;
+  let q=count(roster,'QB'),rb=count(roster,'RB'),wr=count(roster,'WR'),te=count(roster,'TE');
+  if(q>=2)structural+=1.3;
+  if(wr>=3)structural+=1.0;
+  if(rb>=2)structural+=.7;
+  if(te>=1)structural+=.45;
+  bal+=structural;
+  let total=now+later+bal || 1;
+  let winNow=Math.round(now/total*100), winLater=Math.round(later/total*100), balanced=100-winNow-winLater;
+  return {balanced,winNow,winLater};
+}
+function windowAfterPick(p,roster){
+  let before=competitiveWindow(roster), after=competitiveWindow(roster.concat([p]));
+  let deltas={balanced:after.balanced-before.balanced,winNow:after.winNow-before.winNow,winLater:after.winLater-before.winLater};
+  return {before,after,deltas};
+}
+function windowLabel(w){
+  let arr=[['BALANCED',w.balanced],['WIN NOW',w.winNow],['WIN LATER',w.winLater]].sort((a,b)=>b[1]-a[1]);
+  return arr[0][0];
+}
 function strategyImpact(p,roster){
   let v=strategyVector(roster), age=p.age, label='BALANCED', detail='';
   if(p.pos==='QB'&&v.q<2&&p.age<=29){
@@ -351,8 +396,68 @@ function decisionGap(rs,shares){
   if(gap<650)return'Clear preference, but not a must-pick.';
   return'Strong model preference.';
 }
+
+function managerProfileForSlot(slot){
+  // deterministic profile from slot so repeated runs are stable enough to compare
+  const types=['balanced','qb','youth','balanced','rb','value','wr','balanced','win','youth','value','qb'];
+  return types[(slot-1)%types.length];
+}
+function simWeight(p,slot,pickNo,tempRoster){
+  let adp=p.adp||p.rank;
+  let sigma=Math.max(4,3+adp*.08);
+  let z=(pickNo-adp)/sigma;
+  let w=Math.exp(-0.5*z*z);
+  // Falling past ADP increases likelihood; reasonable reaches still occur.
+  w*=Math.exp(Math.max(-.5,Math.min(.8,(pickNo-adp)/16)));
+  let type=managerProfileForSlot(slot);
+  if(type==='qb'&&p.pos==='QB')w*=1.28;
+  if(type==='rb'&&p.pos==='RB')w*=1.18;
+  if(type==='wr'&&p.pos==='WR')w*=1.16;
+  if(type==='youth'){if(p.age<=23)w*=1.2;if(p.age>=29)w*=.78}
+  if(type==='win'){if(p.age>=27)w*=1.12;if(p.age<=22)w*=.93}
+  let n=count(tempRoster,p.pos),rd=Math.ceil(pickNo/12);
+  if(p.pos==='QB'){if(n===0)w*=1.5;else if(n===1)w*=1.3;else if(n>=3&&rd<10)w*=.45}
+  if(p.pos==='WR'){if(n<3)w*=1.12;else if(n>=7&&rd<12)w*=.75}
+  if(p.pos==='RB'){if(n<2&&rd>=3)w*=1.1;else if(n>=5&&rd<12)w*=.7}
+  if(p.pos==='TE'){if(n===0&&rd>=4)w*=1.04;else if(n>=2&&rd<12)w*=.6}
+  return Math.max(.00001,w);
+}
+function monteCarloAvailability(candidate, iterations=500){
+  let nxt=nextMine();
+  if(!nxt) return {survival:null, common:[]};
+  let current=picks().length+1;
+  if(nxt<=current) return {survival:0, common:[]};
+  let baseAvailable=avail().filter(p=>p.id!==candidate.id);
+  let surviveCount=0, atNext={};
+  for(let it=0;it<iterations;it++){
+    let pool=[candidate,...baseAvailable];
+    let tempRosters={};
+    for(let slot=1;slot<=12;slot++) tempRosters[String(slot)]=rosterById(String(slot)).slice();
+    for(let pickNo=current;pickNo<nxt;pickNo++){
+      let slot=slotAt(pickNo);
+      if(slot===mySlot()) continue;
+      let candidates=pool.filter(p=>(p.adp||p.rank)<=pickNo+45 && (p.adp||p.rank)>=Math.max(1,pickNo-70));
+      if(candidates.length<20)candidates=pool.slice().sort((a,b)=>(a.adp||a.rank)-(b.adp||b.rank)).slice(0,45);
+      let weights=candidates.map(p=>simWeight(p,slot,pickNo,tempRosters[String(slot)]||[])*Math.exp((Math.random()-.5)*.35));
+      let total=weights.reduce((a,b)=>a+b,0),roll=Math.random()*total,idx=0;
+      while(idx<weights.length-1&&roll>weights[idx]){roll-=weights[idx];idx++}
+      let chosen=candidates[idx];
+      tempRosters[String(slot)]=(tempRosters[String(slot)]||[]).concat([chosen]);
+      pool=pool.filter(x=>x.id!==chosen.id);
+      if(!pool.length)break;
+    }
+    if(pool.some(p=>p.id===candidate.id)) surviveCount++;
+    pool.slice().sort((a,b)=>fundamental(b)-fundamental(a)).slice(0,8).forEach(p=>{atNext[p.name]=(atNext[p.name]||0)+1});
+  }
+  let common=Object.entries(atNext).sort((a,b)=>b[1]-a[1]).slice(0,5).map(([name,n])=>({name,pct:Math.round(n/iterations*100)}));
+  return {survival:Math.round(surviveCount/iterations*100),common};
+}
+function topThreeWithMC(){
+  let rs=rows().slice(0,3);
+  return rs.map(x=>({...x,mc:monteCarloAvailability(x.p,350)}));
+}
 function renderTop3(){
-  let rs=rows().slice(0,3),r=myRoster(),mine=isMine(),pre=MODE==='live'&&picks().length===0,shares=recommendationShares(rs);
+  let rs=topThreeWithMC(),r=myRoster(),mine=isMine(),pre=MODE==='live'&&picks().length===0,shares=recommendationShares(rs);
   $('turnBadge').textContent=pre?'PRE-DRAFT':mine?'YOUR PICK':'LIVE';
   $('turnBadge').className='pill '+(mine?'good':'');
   if(!rs.length){$('top3').innerHTML='';return}
@@ -361,18 +466,25 @@ function renderTop3(){
     $('headlineReason').textContent="For this 12-team Superflex league, the model prefers Josh Allen at 1.01. Current real Sleeper non-TEP startup ADP has Bijan Robinson as the market 1.01. Drake Maye is the model's third opening option. Dynamic room effects do not activate until actual picks are recorded.";
   }else{
     $('headline').textContent=mine?`Take ${rs[0].p.name}`:`Projected best: ${rs[0].p.name}`;
-    $('headlineReason').textContent=(mine?rs[0].why:'These three update from roster construction, room momentum, tier cliffs and expected availability.')+' '+decisionGap(rs,shares);
+    $('headlineReason').textContent=(mine?rs[0].why:'These three update from roster construction, room momentum, tier cliffs, Monte Carlo availability and expected roster value.')+' '+decisionGap(rs,shares);
   }
   $('top3').innerHTML=rs.map((x,i)=>{
-    let st=strategyImpact(x.p,r);
+    let st=strategyImpact(x.p,r), win=windowAfterPick(x.p,r), mc=x.mc||{survival:x.surv,common:[]};
+    let common=mc.common?.length?`Most common next-pick options: ${mc.common.slice(0,3).map(y=>`${y.name} ${y.pct}%`).join(' · ')}`:'';
     return `<div class="pickcard ${i===0?'recommended':''}">
       <div class="ranknum">#${i+1} choice · ${shares[i]||0}% recommendation share</div>
       <div class="pickname">${esc(x.p.name)}</div>
       <div class="row"><span class="pill">${x.p.pos} · ${x.p.team}</span><span class="pill ${x.act.includes('EXPLOIT')?'good':x.act.includes('PROTECT')?'warn':''}">${x.act}</span></div>
       <div class="why">${esc(x.why)}</div>
       <div class="strategy"><strong>Strategy → ${esc(st.label)}</strong><div class="muted" style="margin-top:3px">${esc(st.detail)}</div></div>
+      <div class="windowgrid">
+        <div class="windowchip"><div class="wl">Balanced</div><div class="wv">${win.after.balanced}%</div></div>
+        <div class="windowchip"><div class="wl">Win Now</div><div class="wv">${win.after.winNow}%</div></div>
+        <div class="windowchip"><div class="wl">Win Later</div><div class="wv">${win.after.winLater}%</div></div>
+      </div>
       <div class="confidence">${i===0?esc(decisionGap(rs,shares)):shares[i]>=shares[0]-5?'Essentially in the same decision tier.':'Alternative path with a meaningful model trade-off.'}</div>
-      <div class="statline"><span>Score ${x.score.toLocaleString()}</span><span>Survival ${x.surv??'—'}%</span></div>
+      <div class="simnote"><strong>Monte Carlo:</strong> ${mc.survival??'—'}% chance this player survives to your next pick. ${esc(common)}</div>
+      <div class="statline"><span>Score ${x.score.toLocaleString()}</span><span>Heuristic ${x.surv??'—'}%</span></div>
       <div class="bar"><div class="fill" style="width:${clamp(x.score/12000*100,5,100)}%"></div></div>
     </div>`
   }).join('');
@@ -394,6 +506,9 @@ function renderMockBoard(){
   }
   $('mockBoard').innerHTML=cells.join('');$('mockClock').textContent=cur<=252?`${pickLabel(cur)} · Slot ${slotAt(cur)}`:'Complete';
   $('recentMock').textContent=M.picks.length?`Last picks: ${M.picks.slice(-6).map(p=>`${pickLabel(p.pick_no)} ${fullName(p)}`).join(' · ')}`:'No picks yet.';
+  let w=competitiveWindow(myRoster());
+  $('myRoster').innerHTML += `<div class="strategy" style="margin-top:9px"><strong>Current build → ${windowLabel(w)}</strong><div class="windowgrid"><div class="windowchip"><div class="wl">Balanced</div><div class="wv">${w.balanced}%</div></div><div class="windowchip"><div class="wl">Win Now</div><div class="wv">${w.winNow}%</div></div><div class="windowchip"><div class="wl">Win Later</div><div class="wv">${w.winLater}%</div></div></div></div>`;
+
 }
 function render(){let pc=picks().length,n=pc+1,rid=n<=252?ownerRidAt(n):'',mn=nextMine();$('pickCount').textContent=pc;$('onClock').textContent=n<=252?pickLabel(n):'Done';$('onClockTeam').textContent=rid?`${teamName(rid)} · original slot ${slotAt(n)}`:`Slot ${slotAt(n)}`;$('myNext').textContent=mn?pickLabel(mn):'—';$('myNextSub').textContent=mn?`${Math.max(0,mn-n)} picks away · Slot ${mySlot()}`:`Slot ${mySlot()}`;$('phase').textContent=phase();rebuildInspect();renderMockBoard();renderTop3();renderTrends();renderTrade();renderRoster();renderDemand();renderMispricing();renderBeer();renderAdvanced();renderTeamInspect()}
 async function fetchJSON(u){let r=await fetch(u,{cache:'no-store'});if(!r.ok)throw new Error(`${r.status} ${r.statusText}`);return r.json()} async function sync(){if(MODE!=='live')return;let id=$('draftId').value.trim();try{$('syncText').textContent='Syncing…';let [d,p,t]=await Promise.all([fetchJSON(`${API}/draft/${id}`),fetchJSON(`${API}/draft/${id}/picks`),fetchJSON(`${API}/draft/${id}/traded_picks`).catch(()=>[])]),u=[],r=[];if(d.league_id)[u,r]=await Promise.all([fetchJSON(`${API}/league/${d.league_id}/users`),fetchJSON(`${API}/league/${d.league_id}/rosters`)]);S.draft=d;S.picks=p.sort((a,b)=>a.pick_no-b.pick_no);S.traded=t||[];let um=Object.fromEntries(u.map(x=>[String(x.user_id),x]));S.teams=r.map(x=>{let z=um[String(x.owner_id)]||{};return{roster_id:x.roster_id,name:z.metadata?.team_name||z.display_name||z.username||`Roster ${x.roster_id}`}});$('mappingStatus').textContent=d.slot_to_roster_id?`Slot mapping loaded · ${S.traded.length} traded startup picks detected`:'Slot mapping not published yet';$('syncDot').classList.add('on');$('syncText').textContent=`Live · ${new Date().toLocaleTimeString()}`;log(`Synced ${S.picks.length} picks; ${S.traded.length} traded picks`);render()}catch(e){$('syncText').textContent='Sync error';log(`ERROR ${e.message}`)}}
