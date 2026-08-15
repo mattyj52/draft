@@ -150,7 +150,6 @@ summary{cursor:pointer;font-weight:650}
 
 <script>
 const API='/api/sleeper?path=', POS=['QB','RB','WR','TE'];
-let SYNC_IN_FLIGHT=false,NEXT_SYNC_ALLOWED=0,LAST_META_SYNC=0;
 const SLEEPER_ADP=new Map([["Bijan Robinson", 2.0], ["Josh Allen", 2.2], ["Jahmyr Gibbs", 3.5], ["Ja'Marr Chase", 4.4], ["Drake Maye", 6.3], ["Puka Nacua", 6.2], ["Jaxon Smith-Njigba", 6.2], ["Amon-Ra St. Brown", 10.0], ["Jayden Daniels", 12.2], ["Ashton Jeanty", 12.9], ["Lamar Jackson", 12.7], ["Joe Burrow", 14.7], ["Caleb Williams", 15.5], ["Justin Jefferson", 15.7], ["Brock Bowers", 16.1], ["CeeDee Lamb", 17.6], ["Omarion Hampton", 18.7], ["Jeremiyah Love", 18.7], ["De'Von Achane", 19.9], ["Malik Nabers", 20.0], ["Trey McBride", 21.3], ["Jonathan Taylor", 22.2], ["Drake London", 23.1], ["Justin Herbert", 23.9], ["James Cook", 25.2], ["Jaxson Dart", 25.9], ["Christian McCaffrey", 27.6], ["Jalen Hurts", 28.0], ["Trevor Lawrence", 31.6], ["Tetairoa McMillan", 31.8], ["Patrick Mahomes", 33.1], ["Chase Brown", 34.1], ["George Pickens", 34.2], ["Kenneth Walker III", 35.6], ["Colston Loveland", 35.8], ["Nico Collins", 36.8], ["Bo Nix", 37.2], ["Emeka Egbuka", 37.7], ["Chris Olave", 40.7], ["Brock Purdy", 40.9], ["Saquon Barkley", 44.6], ["Breece Hall", 45.1], ["Garrett Wilson", 45.2], ["Dak Prescott", 46.5], ["TreVeyon Henderson", 46.5], ["Rashee Rice", 47.2], ["Tyler Warren", 47.4], ["Carnell Tate", 47.9], ["Ladd McConkey", 48.1], ["A.J. Brown", 50.0], ["Quinshon Judkins", 52.3], ["Luther Burden III", 54.2], ["Kyren Williams", 55.2], ["Bucky Irving", 57.6], ["Jordan Love", 58.4], ["Zay Flowers", 60.9], ["Javonte Williams", 61.2], ["Tee Higgins", 61.4], ["Rome Odunze", 61.4], ["Derrick Henry", 62.5], ["Cam Skattebo", 62.7], ["Jordyn Tyson", 63.0], ["DeVonta Smith", 63.4], ["Jared Goff", 63.9], ["Travis Etienne", 65.7], ["Josh Jacobs", 67.1], ["Jadarian Price", 67.3], ["Harold Fannin Jr.", 67.7], ["Fernando Mendoza", 67.7], ["Marvin Harrison Jr.", 69.6], ["Baker Mayfield", 69.9], ["Jaylen Waddle", 70.2], ["Cam Ward", 70.7], ["Brian Thomas Jr.", 70.7], ["Tucker Kraft", 72.2], ["Makai Lemon", 73.3], ["Tyler Shough", 73.5], ["Jameson Williams", 74.6], ["C.J. Stroud", 80.3], ["Bhayshul Tuten", 80.5], ["Matthew Stafford", 82.2], ["Sam LaPorta", 82.3], ["Kyler Murray", 82.7], ["D'Andre Swift", 84.7], ["Sam Darnold", 85.1], ["DJ Moore", 85.4], ["Kyle Pitts", 85.8], ["Christian Watson", 89.8], ["KC Concepcion", 91.1], ["Alec Pierce", 92.1], ["Terry McLaurin", 92.3], ["Bryce Young", 93.4], ["Malik Willis", 95.2], ["RJ Harvey", 95.9], ["Michael Wilson", 97.1], ["Davante Adams", 100.1], ["Parker Washington", 100.9], ["Mike Evans", 101.6], ["Daniel Jones", 102.2], ["Kenyon Sadiq", 102.4], ["Jaylen Warren", 102.9], ["Chuba Hubbard", 103.3], ["Jordan Addison", 103.3]]);
 
 const DN_NOW=new Map([["Josh Allen", {"rank": 1, "value": 10256}], ["Bijan Robinson", {"rank": 2, "value": 10018}], ["Drake Maye", {"rank": 3, "value": 9785}], ["Jahmyr Gibbs", {"rank": 4, "value": 9558}], ["Ja'Marr Chase", {"rank": 5, "value": 9336}], ["Jaxon Smith-Njigba", {"rank": 6, "value": 9119}], ["Puka Nacua", {"rank": 7, "value": 8907}], ["Caleb Williams", {"rank": 8, "value": 8700}], ["Jayden Daniels", {"rank": 9, "value": 8498}], ["Ashton Jeanty", {"rank": 10, "value": 8301}], ["Brock Bowers", {"rank": 11, "value": 8108}], ["Justin Jefferson", {"rank": 12, "value": 7920}], ["Amon-Ra St. Brown", {"rank": 13, "value": 7736}], ["CeeDee Lamb", {"rank": 14, "value": 7556}], ["De'Von Achane", {"rank": 15, "value": 7381}], ["Joe Burrow", {"rank": 16, "value": 7209}], ["Malik Nabers", {"rank": 17, "value": 7042}], ["Jeremiyah Love", {"rank": 18, "value": 6878}], ["Justin Herbert", {"rank": 19, "value": 6719}], ["Trey McBride", {"rank": 20, "value": 6563}], ["Patrick Mahomes", {"rank": 21, "value": 6410}], ["Lamar Jackson", {"rank": 22, "value": 6261}], ["Omarion Hampton", {"rank": 23, "value": 6116}], ["Jaxson Dart", {"rank": 24, "value": 5974}], ["Drake London", {"rank": 25, "value": 5835}], ["Jalen Hurts", {"rank": 26, "value": 5699}], ["Tetairoa McMillan", {"rank": 27, "value": 5567}], ["Trevor Lawrence", {"rank": 28, "value": 5438}], ["Emeka Egbuka", {"rank": 29, "value": 5312}], ["Garrett Wilson", {"rank": 30, "value": 5188}], ["Jonathan Taylor", {"rank": 31, "value": 5068}], ["James Cook", {"rank": 32, "value": 4950}], ["Brock Purdy", {"rank": 33, "value": 4835}], ["George Pickens", {"rank": 34, "value": 4723}], ["Carnell Tate", {"rank": 35, "value": 4613}], ["Bo Nix", {"rank": 36, "value": 4506}], ["Breece Hall", {"rank": 37, "value": 4401}], ["Colston Loveland", {"rank": 38, "value": 4299}], ["Jordan Love", {"rank": 39, "value": 4199}], ["Ladd McConkey", {"rank": 40, "value": 4102}], ["Quinshon Judkins", {"rank": 41, "value": 4006}], ["TreVeyon Henderson", {"rank": 42, "value": 3913}], ["Nico Collins", {"rank": 43, "value": 3822}], ["Kenneth Walker III", {"rank": 44, "value": 3734}], ["Tyler Warren", {"rank": 45, "value": 3647}], ["Chris Olave", {"rank": 46, "value": 3562}], ["Fernando Mendoza", {"rank": 47, "value": 3479}], ["Marvin Harrison Jr.", {"rank": 48, "value": 3399}], ["Rome Odunze", {"rank": 49, "value": 3320}], ["Christian McCaffrey", {"rank": 50, "value": 3243}], ["Dak Prescott", {"rank": 51, "value": 3167}], ["Brian Thomas Jr.", {"rank": 52, "value": 3094}], ["Jordyn Tyson", {"rank": 53, "value": 3022}], ["Makai Lemon", {"rank": 54, "value": 2952}], ["Baker Mayfield", {"rank": 55, "value": 2883}], ["Jared Goff", {"rank": 56, "value": 2816}], ["A.J. Brown", {"rank": 57, "value": 2751}], ["Saquon Barkley", {"rank": 58, "value": 2687}], ["Rashee Rice", {"rank": 59, "value": 2624}], ["Cam Ward", {"rank": 60, "value": 2564}], ["Tee Higgins", {"rank": 61, "value": 2504}], ["Luther Burden III", {"rank": 62, "value": 2446}], ["Jaylen Waddle", {"rank": 63, "value": 2389}], ["Cam Skattebo", {"rank": 64, "value": 2334}], ["Zay Flowers", {"rank": 65, "value": 2226}], ["Javonte Williams", {"rank": 66, "value": 2175}], ["DeVonta Smith", {"rank": 67, "value": 2124}], ["Kyren Williams", {"rank": 68, "value": 2075}], ["Chase Brown", {"rank": 69, "value": 2027}], ["Jadarian Price", {"rank": 70, "value": 1980}], ["Bucky Irving", {"rank": 71, "value": 1934}], ["Tucker Kraft", {"rank": 72, "value": 1889}], ["Kyle Pitts", {"rank": 73, "value": 1845}], ["Josh Jacobs", {"rank": 74, "value": 1802}], ["Harold Fannin Jr.", {"rank": 75, "value": 1760}], ["Travis Etienne", {"rank": 76, "value": 1719}], ["Sam Darnold", {"rank": 77, "value": 1679}], ["Jameson Williams", {"rank": 78, "value": 1640}], ["KC Concepcion", {"rank": 79, "value": 1602}]]);
@@ -462,7 +461,13 @@ function monteCarloTop(candidates,iterations=240){
   let results=candidates.map(x=>({...x,mc:{survival:Math.round((surv[x.p.id]||0)/iterations*100),common}}));c.mc={ids,results};return results
 }
 function topThreeWithMC(){return monteCarloTop(rows().slice(0,3))}
-function renderTop3(){if(MODE==='live'&&!S.liveHealthy){$('turnBadge').textContent='OFFLINE';$('turnBadge').className='pill bad';$('headline').textContent='Live Sleeper data unavailable';$('headlineReason').textContent='Recommendations are hidden until the current draft refreshes successfully. Stale draft picks are cleared automatically.';$('top3').innerHTML='';return;}
+function renderTop3(){if(MODE==='live'&&!S.liveHealthy){
+  $('turnBadge').textContent='WAITING';
+  $('headline').textContent='Waiting for Sleeper data';
+  $('headlineReason').textContent='Recommendations appear after the first successful live sync.';
+  $('top3').innerHTML='';
+  return;
+}
   let rs=topThreeWithMC(),r=myRoster(),mine=isMine(),pre=MODE==='live'&&picks().length===0,shares=recommendationShares(rs);
   $('turnBadge').textContent=pre?'PRE-DRAFT':mine?'YOUR PICK':'LIVE';
   $('turnBadge').className='pill '+(mine?'good':'');
@@ -514,75 +519,70 @@ function renderMockBoard(){
   $('recentMock').textContent=M.picks.length?`Last picks: ${M.picks.slice(-6).map(p=>`${pickLabel(p.pick_no)} ${fullName(p)}`).join(' · ')}`:'No picks yet.';
 
 }
-function render(){let pc=picks().length,n=pc+1,rid=n<=252?ownerRidAt(n):'',mn=nextMine();$('pickCount').textContent=(MODE==='live'&&!S.liveHealthy)?'—':pc;$('onClock').textContent=(MODE==='live'&&!S.liveHealthy)?'—':(n<=252?pickLabel(n):'Done');$('onClockTeam').textContent=rid?`${teamName(rid)} · original slot ${slotAt(n)}`:`Slot ${slotAt(n)}`;$('myNext').textContent=(MODE==='live'&&!S.liveHealthy)?'—':(mn?pickLabel(mn):'—');$('myNextSub').textContent=mn?`${Math.max(0,mn-n)} picks away · Slot ${mySlot()}`:`Slot ${mySlot()}`;$('phase').textContent=(MODE==='live'&&!S.liveHealthy)?'Offline':phase();rebuildInspect();renderMockBoard();renderTop3();renderTrends();renderTrade();renderRoster();renderDemand();renderMispricing();renderBeer();renderAdvanced();renderTeamInspect()}
+function render(){let pc=picks().length,n=pc+1,rid=n<=252?ownerRidAt(n):'',mn=nextMine();$('pickCount').textContent=pc;$('onClock').textContent=n<=252?pickLabel(n):'Done';$('onClockTeam').textContent=rid?`${teamName(rid)} · original slot ${slotAt(n)}`:`Slot ${slotAt(n)}`;$('myNext').textContent=mn?pickLabel(mn):'—';$('myNextSub').textContent=mn?`${Math.max(0,mn-n)} picks away · Slot ${mySlot()}`:`Slot ${mySlot()}`;$('phase').textContent=phase();rebuildInspect();renderMockBoard();renderTop3();renderTrends();renderTrade();renderRoster();renderDemand();renderMispricing();renderBeer();renderAdvanced();renderTeamInspect()}
 async function fetchJSON(u,label='Sleeper'){
   const ctl=new AbortController(),timer=setTimeout(()=>ctl.abort(),8000);
   try{
     const r=await fetch(u,{cache:'no-store',signal:ctl.signal});
-    if(!r.ok){
-      const err=new Error(`${label}: HTTP ${r.status}${r.statusText?` ${r.statusText}`:''}`);
-      err.status=r.status;throw err;
-    }
+    if(!r.ok){const err=new Error(`${label}: HTTP ${r.status}`);err.status=r.status;throw err}
     return await r.json();
   }catch(e){
     if(e.name==='AbortError')throw new Error(`${label}: request timed out`);
-    if(e instanceof TypeError)throw new Error(`${label}: browser could not reach the Vercel Sleeper proxy`);
+    if(e instanceof TypeError)throw new Error(`${label}: could not reach Vercel proxy`);
     throw e;
   }finally{clearTimeout(timer)}
-} async function sync(){
-  if(MODE!=='live'||SYNC_IN_FLIGHT||Date.now()<NEXT_SYNC_ALLOWED)return;
+}
+async function sync(){
+  if(MODE!=='live')return;
   let id=$('draftId').value.trim();
   if(!id)return;
-  SYNC_IN_FLIGHT=true;
   try{
     $('syncText').textContent='Syncing…';$('syncDot').classList.remove('on');
-
-    // Only these two endpoints are required for live draft advice.
     const [d,p]=await Promise.all([
       fetchJSON(`${API}/draft/${id}`,'Draft'),
       fetchJSON(`${API}/draft/${id}/picks`,'Picks')
     ]);
-
-    S.draft=d;
-    S.picks=(p||[]).slice().sort((a,b)=>a.pick_no-b.pick_no);
-    S.liveHealthy=true;S.lastError=null;
-    NEXT_SYNC_ALLOWED=Date.now()+9000;
-    bump();
-
-    // Metadata is useful but nonessential. Refresh at most once per minute.
-    if(Date.now()-LAST_META_SYNC>60000){
-      LAST_META_SYNC=Date.now();
-      Promise.all([
-        fetchJSON(`${API}/draft/${id}/traded_picks`,'Traded picks').catch(e=>{log(`Optional: ${e.message}`);return[]}),
-        d.league_id?fetchJSON(`${API}/league/${d.league_id}/users`,'League users').catch(e=>{log(`Optional: ${e.message}`);return[]}):Promise.resolve([]),
-        d.league_id?fetchJSON(`${API}/league/${d.league_id}/rosters`,'League rosters').catch(e=>{log(`Optional: ${e.message}`);return[]}):Promise.resolve([])
-      ]).then(([t,u,r])=>{
-        S.traded=t||[];
-        if(u.length&&r.length){
-          let um=Object.fromEntries(u.map(x=>[String(x.user_id),x]));
-          S.teams=r.map(x=>{let z=um[String(x.owner_id)]||{};return{roster_id:x.roster_id,name:z.metadata?.team_name||z.display_name||z.username||`Roster ${x.roster_id}`}});
-        }
-        $('mappingStatus').textContent=d.slot_to_roster_id?`Slot mapping loaded · ${S.traded.length} traded startup picks detected`:'Slot mapping not published yet';
-        bump();render();
-      });
-    }
-
+    S.draft=d;S.picks=(p||[]).slice().sort((a,b)=>a.pick_no-b.pick_no);
+    S.liveHealthy=true;S.lastError=null;bump();
     $('syncDot').classList.add('on');
-    $('syncText').textContent=`Live · ${new Date().toLocaleTimeString()}`;
-    log(`CORE SYNC OK · ${S.picks.length} picks · draft status ${d.status||'unknown'}`);
+    $('syncText').textContent=`${d.status==='drafting'?'LIVE':'Connected'} · ${new Date().toLocaleTimeString()}`;
+    log(`CORE SYNC OK · ${S.picks.length} picks · ${d.status||'unknown'}`);
     render();
-  }catch(e){
-    S.liveHealthy=false;S.lastError=e.message;
-    S.draft=null;S.picks=[];S.teams=[];S.traded=[];bump();
 
-    // Back off much harder after rate limiting.
-    NEXT_SYNC_ALLOWED=Date.now()+(e.status===429?30000:10000);
+    // Optional metadata must never break core live syncing
+    Promise.all([
+      fetchJSON(`${API}/draft/${id}/traded_picks`,'Traded picks').catch(()=>[]),
+      d.league_id?fetchJSON(`${API}/league/${d.league_id}/users`,'League users').catch(()=>[]):Promise.resolve([]),
+      d.league_id?fetchJSON(`${API}/league/${d.league_id}/rosters`,'League rosters').catch(()=>[]):Promise.resolve([])
+    ]).then(([t,u,r])=>{
+      S.traded=t||[];
+      if(u.length&&r.length){
+        let um=Object.fromEntries(u.map(x=>[String(x.user_id),x]));
+        S.teams=r.map(x=>{let z=um[String(x.owner_id)]||{};return{roster_id:x.roster_id,name:z.metadata?.team_name||z.display_name||z.username||`Roster ${x.roster_id}`}});
+      }
+      $('mappingStatus').textContent=d.slot_to_roster_id?`Slot mapping loaded · ${S.traded.length} traded startup picks detected`:'Slot mapping not published yet';
+      bump();render();
+    });
+  }catch(e){
+    S.liveHealthy=false;S.lastError=e.message;S.draft=null;S.picks=[];S.teams=[];S.traded=[];bump();
     $('syncDot').classList.remove('on');
     $('syncText').textContent=`Sync error · ${e.message}`;
     $('mappingStatus').textContent=`${e.message} · stale picks cleared`;
     log(`CORE ERROR ${e.message}`);
     render();
-  }finally{
-    SYNC_IN_FLIGHT=false;
   }
 }
+async function testSleeperAPI(){
+  let id=$('draftId').value.trim();
+  try{
+    const d=await fetchJSON(`${API}/draft/${id}`,'Draft test');
+    const p=await fetchJSON(`${API}/draft/${id}/picks`,'Picks test');
+    alert(`PASS — status: ${d.status||'unknown'}; picks: ${p.length}`);
+  }catch(e){alert(`FAIL — ${e.message}`)}
+}
+function setMode(m){MODE=m;if(m==='live')S.liveHealthy=false;bump();if(m==='mock'&&Object.keys(M.profiles).length===0)initProfiles();$('liveMode').className=m==='live'?'primary':'';$('mockMode').className=m==='mock'?'primary':'';$('mockControls').style.display=m==='mock'?'flex':'none';$('syncText').textContent=m==='mock'?'Mock mode':$('syncText').textContent;if(m==='live')sync();else render()}
+function selfTests(){let e=[],a=(x,m)=>{if(!x)e.push(m)};a(slotAt(1)===1&&slotAt(12)===12,'R1');a(slotAt(13)===12&&slotAt(24)===1,'R2');a(slotAt(25)===12&&slotAt(36)===1,'R3 reversal');a(slotAt(37)===1&&slotAt(48)===12,'R4');let c={};for(let n=1;n<=252;n++)c[slotAt(n)]=(c[slotAt(n)]||0)+1;a(Object.values(c).every(x=>x===21),'21 picks/slot');a(RAW.length>=280,`pool ${RAW.length}`);a(new Set(RAW.map(p=>norm(p.name))).size===RAW.length,'duplicate names');a((SLEEPER_ADP.get('Bijan Robinson')||99)<3,'Sleeper ADP loaded');a(RAW.find(p=>p.name==='Kenneth Walker III').rank>30,'Walker not 1.01');a(Math.abs(rosterFit(RAW.find(p=>p.name==='Jordyn Tyson'),[]))<=320,'bounded fit');a(DN_NOW.get('Marvin Harrison Jr.').rank<DN_NOW.get('Jordyn Tyson').rank,'DN MHJ Tyson order');a(intrinsic(RAW.find(p=>p.name==='Josh Allen'))>8500,'external intrinsic');a(['Josh Allen','Bijan Robinson','Drake Maye'].every(n=>RAW.some(p=>p.name===n)),'pre-draft trio present');a(norm('Kenneth Walker III')===norm('Kenneth Walker Jr.'),'suffix normalization');$('selfTest').textContent=e.length?`FAIL: ${e.join(', ')}`:`PASS · ${RAW.length} players · 3RR verified`;$('selfTest').className=e.length?'diagfail':'diagpass';return e}
+$('slotSelect').value=localStorage.getItem('dynasty_slot')||'1';$('slotSelect').addEventListener('change',()=>{localStorage.setItem('dynasty_slot',$('slotSelect').value);bump();render()});$('liveMode').addEventListener('click',()=>setMode('live'));$('mockMode').addEventListener('click',()=>setMode('mock'));$('newMock').addEventListener('click',()=>{M.picks=[];initProfiles();bump();render()});$('simToMe').addEventListener('click',()=>{let g=0;while(!isMine()&&M.picks.length<252&&g++<252)cpuPick();render()});$('sim12').addEventListener('click',()=>{for(let i=0;i<12&&!isMine();i++)cpuPick();render()});$('undoMock').addEventListener('click',()=>{M.picks.pop();bump();render()});$('roomStyle').addEventListener('change',()=>{bump();render()});$('syncNow').addEventListener('click',sync);$('testApi').addEventListener('click',testSleeperAPI);$('teamInspect').addEventListener('change',renderTeamInspect);$('posFilter').addEventListener('change',renderBeer);$('search').addEventListener('input',renderBeer);$('tradeDownPick').addEventListener('input',renderTrade);$('futureFirsts').addEventListener('input',renderTrade);setInterval(()=>{if(MODE==='live'&&$('autoSync').checked)sync()},10000);selfTests();sync();
+</script>
+</body>
+</html>
